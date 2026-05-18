@@ -23,6 +23,7 @@ export function renderStudents(studentsContainer, students, onDelete, onEdit) {
     status.classList.add("status");
     deleteBtn.textContent = "Delete";
     editBtn.textContent = "Edit";
+    card.dataset.id = student.id;
 
     // payment status color
     if (student.paymentStatus === "Paid") {
