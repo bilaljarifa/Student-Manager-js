@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Manager</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <!-- TOAST -->
+  <div id="toast-container"></div>
+
+  <!-- MODAL -->
+  <div id="modalOverlay">
+    <div id="modal">
+      <button id="closeModal">✕</button>
+      <h2 id="modalName"></h2>
+      <p id="modalEmail"></p>
+      <p id="modalClass"></p>
+      <p id="modalPayment"></p>
+      <p id="modalAverage"></p>
+      <p id="modalStatus"></p>
+      <div id="modalGrades"></div>
+    </div>
+  </div>
+
+  <div id="app">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar">
+      <div id="sidebar-logo">
+        <span>SM</span>
+        <h2>Student Manager</h2>
+      </div>
+
+      <nav id="sidebar-nav">
+        <a href="#" class="nav-item active" data-section="dashboard">
+          📊 Dashboard
+        </a>
+        <a href="#" class="nav-item" data-section="students">
+          👨‍🎓 Students
+        </a>
+        <a href="#" class="nav-item" data-section="grades">
+          📝 Grades
+        </a>
+      </nav>
+
+      <div id="sidebar-footer">
+        <span id="welcomeMsg"></span>
+        <button id="logoutBtn">Logout</button>
+        <button id="darkModeBtn">dark mode</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main id="main-content">
+
+      <!-- DASHBOARD SECTION -->
+      <section id="section-dashboard" class="section active">
+        <h1>Dashboard</h1>
+        <div id="dashboard">
+          <div class="stat">
+            <span>Total Students</span>
+            <span id="counter">0</span>
+          </div>
+          <div class="stat">
+            <span>Paid</span>
+            <span id="paid">0</span>
+          </div>
+          <div class="stat">
+            <span>Pending</span>
+            <span id="pending">0</span>
+          </div>
+          <div class="stat">
+            <span>Paid %</span>
+            <span id="percentage">0%</span>
+          </div>
+          <div class="stat">
+            <span>Pending %</span>
+            <span id="pendingPercentage">0%</span>
+          </div>
+        </div>
+        <div id="chart-container">
+          <canvas id="paymentChart"></canvas>
+        </div>
+      </section>
+
+      <!-- STUDENTS SECTION -->
+      <section id="section-students" class="section">
+        <h1>Students</h1>
+
+        <!-- FORM -->
+        <div id="form-container">
+          <select id="classFilter">
+            <option value="">All Classes</option>
+          </select>
+          <select id="sortPayment">
+            <option value="">Sort by Payment</option>
+            <option value="Paid">Paid First</option>
+            <option value="Pending">Pending First</option>
+          </select>
+          <button id="sortBtn">Sort by Name</button>
+          <button id="clearAllBtn">Clear All</button>
+          <button id="exportBtn">Export CSV</button>
+          <input type="text" id="search" placeholder="Search students...">
+          <input type="text" id="name" placeholder="Student Name">
+          <input type="email" id="email" placeholder="Student Email">
+          <input type="text" id="studentClass" placeholder="Class">
+          <select id="paymentStatus">
+            <option value="Paid">Paid</option>
+            <option value="Pending">Pending</option>
+          </select>
+          <button id="addBtn">Add Student</button>
+        </div>
+
+        <!-- TABLE -->
+        <table id="studentsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Class</th>
+              <th>Payment</th>
+              <th>Average</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students"></tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        <div id="pagination">
+          <button id="prevBtn">← Previous</button>
+          <span id="pageInfo">Page 1</span>
+          <button id="nextBtn">Next →</button>
+        </div>
+      </section>
+
+      <!-- GRADES SECTION -->
+      <section id="section-grades" class="section">
+        <h1>Grades Management</h1>
+
+        <div id="gradesFilter">
+          <select id="filterStudent">
+            <option value="">All Students</option>
+          </select>
+        </div>
+
+        <div id="gradesStats">
+          <div class="stat-box">
+            <p>Average Grade</p>
+            <p id="avgGrade">0</p>
+          </div>
+          <div class="stat-box">
+            <p>Highest Grade</p>
+            <p id="highestGrade">0</p>
+          </div>
+          <div class="stat-box">
+            <p>Lowest Grade</p>
+            <p id="lowestGrade">0</p>
+          </div>
+        </div>
+
+        <table id="gradesTable">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Grade</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="gradesTableBody"></tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+
+</html>
