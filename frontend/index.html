@@ -141,17 +141,21 @@
           <button id="nextBtn">Next →</button>
         </div>
       </section>
-
       <!-- GRADES SECTION -->
       <section id="section-grades" class="section">
         <h1>Grades Management</h1>
 
-        <div id="gradesFilter">
+        <!-- ADD GRADE FORM -->
+        <div id="addGradeForm">
           <select id="filterStudent">
             <option value="">All Students</option>
           </select>
+          <input type="text" id="gradeSubject" placeholder="Subject (Math, Science, English...)" />
+          <input type="text" id="gradeScore" placeholder="Score (0-100)" min="0" max="100" />
+          <button id="addGradeBtn">Add Grade</button>
         </div>
 
+        <!-- GRADES STATS -->
         <div id="gradesStats">
           <div class="stat-box">
             <p>Average Grade</p>
@@ -167,11 +171,13 @@
           </div>
         </div>
 
+        <!-- GRADES TABLE -->
         <table id="gradesTable">
           <thead>
             <tr>
               <th>Student Name</th>
-              <th>Grade</th>
+              <th>Subject</th>
+              <th>Score</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -179,7 +185,6 @@
           <tbody id="gradesTableBody"></tbody>
         </table>
       </section>
-
     </main>
   </div>
 
