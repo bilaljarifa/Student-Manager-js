@@ -9,6 +9,7 @@ import { updateChart } from "./chart.js";
 import { showToast } from "./toast.js";
 import { getAverage, getStatus } from "./grades.js";
 import { renderGradesPage, updateGradesTable, updateGradesStats } from "./grades-page.js";
+import { displayWelcome } from "./welcome.js";
 
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
@@ -44,6 +45,7 @@ const addGradeBtn = document.querySelector("#addGradeBtn");
 const highestGrade = document.querySelector("#highestGrade");
 const lowestGrade = document.querySelector("#lowestGrade");
 
+
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
 const students = loadStudents();
@@ -61,6 +63,8 @@ updateGradesTable(students, filterStudent, gradesTableBody);
 updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
 
 // ── FUNCTIONS ──────────────────────────────────────────
+displayWelcome();
+
 function onDelete(studentId) {
   const confirmed = window.confirm("Are you sure you want to delete?");
   if (!confirmed) return;
