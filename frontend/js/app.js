@@ -10,6 +10,7 @@ import { showToast } from "./toast.js";
 import { getAverage, getStatus } from "./grades.js";
 import { renderGradesPage, updateGradesTable, updateGradesStats } from "./grades-page.js";
 import { displayWelcome } from "./welcome.js";
+import { updateDashboardStats } from "./dashboardStats.js";
 
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
@@ -54,6 +55,7 @@ const studentsPerPage = 10;
 
 // ── INITIAL RENDER ─────────────────────────────────────
 renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
+updateDashboardStats(students);
 updateCounter(students);
 updateChart(students);
 updateClassFilter();
@@ -86,6 +88,7 @@ function onDelete(studentId) {
     updateChart(students);
     updateClassFilter();
     updatePagination();
+    updateDashboardStats(students);
     showToast("Student deleted!", "error");
   }, 400);
 }
@@ -112,6 +115,7 @@ function clearAll() {
   updateChart(students);
   updateClassFilter();
   updatePagination();
+  updateDashboardStats(students);
   showToast("All students deleted!", "error");
 }
 
@@ -182,10 +186,13 @@ function updatePagination() {
 
 function onAddGrade(studentId, grade) {
   const student = students.find((s) => s.id === studentId);
-  student.grades.push(grade);
+  student.grades.push({ subject: "General", score: grade }); // ← make it an object
   saveStudents(students);
   renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
   updateCounter(students);
+  updateDashboardStats(students);  // ← ADD THIS
+  updateGradesTable(students, filterStudent, gradesTableBody);  // ← ADD THIS
+  updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);  // ← ADD THIS
 }
 
 function onRowClick(student) {
@@ -322,6 +329,7 @@ addGradeBtn.addEventListener("click", () => {
 
   updateGradesTable(students, filterStudent, gradesTableBody);
   updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
+  updateDashboardStats(students);  // ← ADD THIS LINE
 
   gradeSubject.value = "";
   gradeScore.value = "";
@@ -369,7 +377,7 @@ addBtn.addEventListener("click", () => {
   updateChart(students);
   updateClassFilter();
   updatePagination();
-
+  updateDashboardStats(students);
   nameInput.value = "";
   emailInput.value = "";
   classInput.value = "";
