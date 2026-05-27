@@ -302,6 +302,29 @@ searchInput.addEventListener("input", () => {
 classFilter.addEventListener("change", () => {
   renderStudents(studentsContainer, getFilteredStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 });
+// ── DELETE GRADE ────────────────────────────────
+// ── DELETE GRADE ────────────────────────────────
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("deleteGradeBtn")) {
+    const confirmed = window.confirm("Delete this grade?");
+    if (!confirmed) return;
+
+    const row = e.target.closest("tr");
+    const studentName = row.cells[0].textContent;
+    const gradeScore = row.cells[2].textContent;
+
+    const student = students.find(s => s.name === studentName);
+    const gradeIndex = student.grades.findIndex(g => g.score == gradeScore);
+    student.grades.splice(gradeIndex, 1);
+    saveStudents(students);
+    
+    updateGradesTable(students, filterStudent, gradesTableBody);
+    updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
+    updateDashboardStats(students);
+
+    showToast("Grade deleted!", "error");
+  }
+});
 
 // ── ADD GRADE ────────────────────────────────────
 addGradeBtn.addEventListener("click", () => {
