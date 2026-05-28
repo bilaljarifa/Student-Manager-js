@@ -63,14 +63,15 @@ export function updateGradesTable(students, filterStudentSelector, gradesTableBo
 
             // fill the row with data
             row.innerHTML = `
-                <td>${student.name}</td>
-                <td>${grade.subject}</td>
-                <td>${grade.score}</td>
-                <td><span class="status ${status.toLowerCase()}">${status}</span></td>
-                <td>
-                  <button class="deleteGradeBtn">Delete</button>
-                </td>
-            `;
+    <td>${student.name}</td>
+    <td>${grade.subject}</td>
+    <td>${grade.score}</td>
+    <td><span class="status ${status.toLowerCase()}">${status}</span></td>
+    <td>
+      <button class="updateGradeBtn" data-student-id="${student.id}" data-subject="${grade.subject}">Update</button>
+      <button class="deleteGradeBtn">Delete</button>
+    </td>
+`;
 
             // add the row to the table
             gradesTableBodySelector.appendChild(row);

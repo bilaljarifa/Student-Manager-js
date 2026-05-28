@@ -194,10 +194,19 @@ function onAddGrade(studentId, grade) {
   updateGradesTable(students, filterStudent, gradesTableBody);  // ← ADD THIS
   updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);  // ← ADD THIS
 }
-
 function onRowClick(student) {
-  const average = getAverage(student.grades);
+  // Extract just the scores from grade objects
+  const scores = student.grades.map(g => typeof g === 'object' ? g.score : g);
+  const average = getAverage(scores);
   const status = getStatus(average);
+
+  // Format grades for display
+  const gradesList = student.grades.map(g => {
+    if (typeof g === 'object') {
+      return `${g.subject}: ${g.score}`;
+    }
+    return g;
+  }).join(", ");
 
   document.querySelector("#modalName").textContent = student.name;
   document.querySelector("#modalEmail").textContent = student.email;
@@ -205,11 +214,10 @@ function onRowClick(student) {
   document.querySelector("#modalPayment").textContent = student.paymentStatus;
   document.querySelector("#modalAverage").textContent = `Average: ${average}`;
   document.querySelector("#modalStatus").textContent = `Status: ${status}`;
-  document.querySelector("#modalGrades").textContent = `Grades: ${student.grades.join(", ")}`;
+  document.querySelector("#modalGrades").textContent = `Grades: ${gradesList}`;
 
   document.querySelector("#modalOverlay").classList.add("active");
 }
-
 // ── EVENT LISTENERS ────────────────────────────────────
 
 // logout — clear session and redirect to login
@@ -303,7 +311,6 @@ classFilter.addEventListener("change", () => {
   renderStudents(studentsContainer, getFilteredStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 });
 // ── DELETE GRADE ────────────────────────────────
-// ── DELETE GRADE ────────────────────────────────
 document.addEventListener("click", (e) => {
   if (e.target.classList.contains("deleteGradeBtn")) {
     const confirmed = window.confirm("Delete this grade?");
@@ -317,7 +324,7 @@ document.addEventListener("click", (e) => {
     const gradeIndex = student.grades.findIndex(g => g.score == gradeScore);
     student.grades.splice(gradeIndex, 1);
     saveStudents(students);
-    
+
     updateGradesTable(students, filterStudent, gradesTableBody);
     updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
     updateDashboardStats(students);
@@ -326,6 +333,49 @@ document.addEventListener("click", (e) => {
   }
 });
 
+
+// ── UPDATE WHEN DROPDOWN CHANGES ────────────────────────────────
+filterStudent.addEventListener("change", () => {
+  updateGradesTable(students);
+  updateGradesStats(students);
+});
+// ──  update grades  ────────────────────────────────────
+
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("updateGradeBtn")) {
+    const newScore = prompt("Enter new score (0-100):");
+    if (newScore === null || isNaN(newScore) || newScore < 0 || newScore > 100) return;
+
+    // Convert to number
+    const studentId = parseInt(e.target.dataset.studentId);
+    const subject = e.target.dataset.subject;
+
+    // Debug: check if student exists
+    console.log("Looking for student ID:", studentId);
+    console.log("All student IDs:", students.map(s => s.id));
+
+    const student = students.find(s => s.id === studentId);
+
+    if (!student) {
+      showToast("Student not found!", "error");
+      return;
+    }
+
+    const gradeIndex = student.grades.findIndex(g => g.subject === subject);
+
+    if (gradeIndex === -1) {
+      showToast("Grade not found!", "error");
+      return;
+    }
+
+    student.grades[gradeIndex].score = parseInt(newScore);
+
+    saveStudents(students);
+    updateGradesTable(students, filterStudent, gradesTableBody);
+    updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
+    showToast("Grade updated!", "info");
+  }
+});
 // ── ADD GRADE ────────────────────────────────────
 addGradeBtn.addEventListener("click", () => {
   const selectedStudentId = filterStudent.value;
