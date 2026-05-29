@@ -55,7 +55,9 @@ const teacherUsername = document.querySelector("#teacherUsername");
 const teacherPassword = document.querySelector("#teacherPassword");
 const addTeacherBtn = document.querySelector("#addTeacherBtn");
 const teachersContainer = document.querySelector("#teachers");
-
+const teacherClass = document.querySelector("#teacherClass");
+const teacherRoom = document.querySelector("#teacherRoom");
+const teacherSchedule = document.querySelector("#teacherSchedule");
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
 let editingTeacherId = null;        // ← NEW: track which teacher we're editing
@@ -77,23 +79,37 @@ updatePagination();
 renderGradesPage(students, filterStudent);
 updateGradesTable(students, filterStudent, gradesTableBody);
 updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
+updateTeacherClassFilter();
 
 // ── FUNCTIONS ──────────────────────────────────────────
 displayWelcome();
 // ── TEACHERS FUNCTIONS ──────────────────────────
-
 function onEditTeacher(teacher) {
+  // CHECK IF ADMIN
+  if (!isAdmin()) {
+    showToast("Only admins can edit teachers!", "error");
+    return;
+  }
+
   teacherName.value = teacher.name;
   teacherUsername.value = teacher.username;
   teacherPassword.value = teacher.password;
+  teacherClass.value = teacher.teacherClass;
+  teacherRoom.value = teacher.room;
+  teacherSchedule.value = teacher.schedule;
 
   editingTeacherId = teacher.id;
   addTeacherBtn.textContent = "Update Teacher";
   showToast("Editing teacher...", "info");
 }
+async function onDeleteTeacher(teacherId) {
+  // CHECK IF ADMIN
+  if (!isAdmin()) {
+    showToast("Only admins can delete teachers!", "error");
+    return;
+  }
 
-function onDeleteTeacher(teacherId) {
-  const confirmed = window.confirm("Delete this teacher?");
+  const confirmed = await showConfirm("Delete this teacher?");
   if (!confirmed) return;
 
   const updatedTeachers = teachers.filter(t => t.id !== teacherId);
@@ -103,13 +119,13 @@ function onDeleteTeacher(teacherId) {
   renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
   showToast("Teacher deleted!", "error");
 }
-function onDelete(studentId) {
-  if (!canDeleteStudent()) {  // ← ADD THIS
+async function onDelete(studentId) {
+  if (!canDeleteStudent()) {
     showToast("Teachers cannot delete students!", "error");
     return;
   }
 
-  const confirmed = window.confirm("Are you sure you want to delete?");
+  const confirmed = await showConfirm("Delete this student?");
   if (!confirmed) return;
 
   const cardElement = document.querySelector(`[data-id="${studentId}"]`);
@@ -135,7 +151,7 @@ function onDelete(studentId) {
 }
 
 function onEdit(student) {
-  if (!canEditStudent()) {  // ← ADD THIS
+  if (!canEditStudent()) {
     showToast("Teachers cannot edit students!", "error");
     return;
   }
@@ -149,8 +165,8 @@ function onEdit(student) {
   showToast("Editing student...", "info");
 }
 
-function clearAll() {
-  const confirmed = window.confirm("Are you sure you want to delete all?");
+async  function clearAll() {
+  const confirmed = await showConfirm("Are you sure you want to delete all?");
   if (!confirmed) return;
 
   students.length = 0;
@@ -176,6 +192,20 @@ function updateClassFilter() {
     option.value = className;
     option.textContent = className;
     classFilter.appendChild(option);
+  });
+}
+function updateTeacherClassFilter() {
+  const uniqueClasses = [...new Set(students.map((student) => {
+    return student.studentClass;
+  }))];
+
+  teacherClass.innerHTML = '<option value="">Select Class</option>';
+
+  uniqueClasses.forEach((className) => {
+    const option = document.createElement("option");
+    option.value = className;
+    option.textContent = className;
+    teacherClass.appendChild(option);
   });
 }
 
@@ -238,6 +268,39 @@ function onAddGrade(studentId, grade) {
   updateDashboardStats(students);  // ← ADD THIS
   updateGradesTable(students, filterStudent, gradesTableBody);  // ← ADD THIS
   updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);  // ← ADD THIS
+}
+
+// ── CUSTOM CONFIRMATION MODAL ──────────────────────────────
+function showConfirm(title, message) {
+  return new Promise((resolve) => {
+    const overlay = document.querySelector("#confirmOverlay");
+    const titleEl = document.querySelector("#confirmTitle");
+    const messageEl = document.querySelector("#confirmMessage");
+    const okBtn = document.querySelector("#confirmOkBtn");
+    const cancelBtn = document.querySelector("#confirmCancelBtn");
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+
+    overlay.classList.add("active");
+
+    const handleOk = () => {
+      overlay.classList.remove("active");
+      okBtn.removeEventListener("click", handleOk);
+      cancelBtn.removeEventListener("click", handleCancel);
+      resolve(true);
+    };
+
+    const handleCancel = () => {
+      overlay.classList.remove("active");
+      okBtn.removeEventListener("click", handleOk);
+      cancelBtn.removeEventListener("click", handleCancel);
+      resolve(false);
+    };
+
+    okBtn.addEventListener("click", handleOk);
+    cancelBtn.addEventListener("click", handleCancel);
+  });
 }
 function onRowClick(student) {
   // Extract just the scores from grade objects
@@ -356,9 +419,9 @@ classFilter.addEventListener("change", () => {
   renderStudents(studentsContainer, getFilteredStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 });
 // ── DELETE GRADE ────────────────────────────────
-document.addEventListener("click", (e) => {
+document.addEventListener("click",async  (e) => {
   if (e.target.classList.contains("deleteGradeBtn")) {
-    const confirmed = window.confirm("Delete this grade?");
+    const confirmed = await showConfirm("Delete this grade?");
     if (!confirmed) return;
 
     const row = e.target.closest("tr");
@@ -378,7 +441,65 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// ── ADD TEACHER (ADMIN ONLY) ────────────────────────────
+addTeacherBtn.addEventListener("click", () => {
+  // CHECK IF ADMIN
+  if (!isAdmin()) {
+    showToast("Only admins can add teachers!", "error");
+    return;
+  }
 
+  const name = teacherName.value.trim();
+  const username = teacherUsername.value.trim();
+  const password = teacherPassword.value.trim();
+  const classAssigned = teacherClass.value.trim();
+  const room = teacherRoom.value.trim();
+  const schedule = teacherSchedule.value.trim();
+
+  // Validate
+  if (!name || !username || !password) {
+    showToast("Please fill all required fields!", "error");
+    return;
+  }
+
+  if (editingTeacherId === null) {
+    // ADDING NEW TEACHER
+    const teacher = new Teacher(
+      Date.now(),
+      name,
+      username,
+      password,
+      classAssigned,
+      room,
+      schedule
+    );
+    teachers.push(teacher);
+    showToast("Teacher added successfully!");
+  } else {
+    // UPDATING TEACHER
+    const teacherToEdit = teachers.find(t => t.id === editingTeacherId);
+    teacherToEdit.name = name;
+    teacherToEdit.username = username;
+    teacherToEdit.password = password;
+    teacherToEdit.teacherClass = classAssigned;
+    teacherToEdit.room = room;
+    teacherToEdit.schedule = schedule;
+    editingTeacherId = null;
+    addTeacherBtn.textContent = "Add Teacher";
+    showToast("Teacher updated!", "info");
+  }
+
+  saveTeachers(teachers);
+  renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
+
+  // Clear form
+  teacherName.value = "";
+  teacherUsername.value = "";
+  teacherPassword.value = "";
+  teacherClass.value = "";
+  teacherRoom.value = "";
+  teacherSchedule.value = "";
+});
 // ── UPDATE WHEN DROPDOWN CHANGES ────────────────────────────────
 filterStudent.addEventListener("change", () => {
   updateGradesTable(students);
@@ -464,46 +585,7 @@ addGradeBtn.addEventListener("click", () => {
 
   showToast("Grade added successfully!", "success");
 });
-// ── ADD TEACHER ────────────────────────────────
-addTeacherBtn.addEventListener("click", () => {
-  const name = teacherName.value.trim();
-  const username = teacherUsername.value.trim();
-  const password = teacherPassword.value.trim();
 
-  // Validate
-  if (!name || !username || !password) {
-    showToast("Please fill all fields!", "error");
-    return;
-  }
-
-  if (editingTeacherId === null) {
-    // ADDING
-    const teacher = new Teacher(
-      Date.now(),
-      name,
-      username,
-      password
-    );
-    teachers.push(teacher);
-    showToast("Teacher added successfully!");
-  } else {
-    // UPDATING
-    const teacherToEdit = teachers.find(t => t.id === editingTeacherId);
-    teacherToEdit.name = name;
-    teacherToEdit.username = username;
-    teacherToEdit.password = password;
-    editingTeacherId = null;
-    addTeacherBtn.textContent = "Add Teacher";
-    showToast("Teacher updated!", "info");
-  }
-
-  saveTeachers(teachers);
-  renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
-
-  teacherName.value = "";
-  teacherUsername.value = "";
-  teacherPassword.value = "";
-});
 // ── GRADES PAGE ────────────────────────────────
 filterStudent.addEventListener("change", () => {
   updateGradesTable(students, filterStudent, gradesTableBody);
