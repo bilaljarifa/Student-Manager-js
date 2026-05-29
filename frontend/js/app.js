@@ -1,5 +1,7 @@
 // ── IMPORTS ────────────────────────────────────────────
 // each import brings in a function/class from another file
+
+import { isAdmin, isTeacher, filterStudentsByRole, canDeleteStudent, canEditStudent, canAddGrades } from "./role-management.js";
 import { Student } from "./student.js";
 import { validation } from "./validation.js";
 import { renderStudents } from "./ui.js";
@@ -11,14 +13,17 @@ import { getAverage, getStatus } from "./grades.js";
 import { renderGradesPage, updateGradesTable, updateGradesStats } from "./grades-page.js";
 import { displayWelcome } from "./welcome.js";
 import { updateDashboardStats } from "./dashboardStats.js";
-
+import { loadTeachers } from "./storage.js";
+import { Teacher } from "./teacher.js";        // Teacher blueprint
+import { renderTeachers } from "./teacher-ui.js"; // render teachers table
+import { saveTeachers } from "./storage.js"; // ← ADD THIS
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
 // if no "isLoggedIn" in localStorage → kick user to login page
 if (!localStorage.getItem("isLoggedIn")) {
   window.location.href = "login.html";
 }
-
+// At the start
 // ── SELECTORS ──────────────────────────────────────────
 const searchInput = document.querySelector("#search");
 const nameInput = document.querySelector("#name");
@@ -45,15 +50,24 @@ const gradeScore = document.querySelector("#gradeScore");
 const addGradeBtn = document.querySelector("#addGradeBtn");
 const highestGrade = document.querySelector("#highestGrade");
 const lowestGrade = document.querySelector("#lowestGrade");
-
+const teacherName = document.querySelector("#teacherName");
+const teacherUsername = document.querySelector("#teacherUsername");
+const teacherPassword = document.querySelector("#teacherPassword");
+const addTeacherBtn = document.querySelector("#addTeacherBtn");
+const teachersContainer = document.querySelector("#teachers");
 
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
+let editingTeacherId = null;        // ← NEW: track which teacher we're editing
 const students = loadStudents();
+const teachers = loadTeachers();    // ← NEW: load teachers from localStorage
 let currentPage = 1;
 const studentsPerPage = 10;
 
+
 // ── INITIAL RENDER ─────────────────────────────────────
+const roleFilteredStudents = filterStudentsByRole(students);
+renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher); // ← NEW
 renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 updateDashboardStats(students);
 updateCounter(students);
@@ -66,8 +80,35 @@ updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
 
 // ── FUNCTIONS ──────────────────────────────────────────
 displayWelcome();
+// ── TEACHERS FUNCTIONS ──────────────────────────
 
+function onEditTeacher(teacher) {
+  teacherName.value = teacher.name;
+  teacherUsername.value = teacher.username;
+  teacherPassword.value = teacher.password;
+
+  editingTeacherId = teacher.id;
+  addTeacherBtn.textContent = "Update Teacher";
+  showToast("Editing teacher...", "info");
+}
+
+function onDeleteTeacher(teacherId) {
+  const confirmed = window.confirm("Delete this teacher?");
+  if (!confirmed) return;
+
+  const updatedTeachers = teachers.filter(t => t.id !== teacherId);
+  teachers.length = 0;
+  teachers.push(...updatedTeachers);
+  saveTeachers(teachers);
+  renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
+  showToast("Teacher deleted!", "error");
+}
 function onDelete(studentId) {
+  if (!canDeleteStudent()) {  // ← ADD THIS
+    showToast("Teachers cannot delete students!", "error");
+    return;
+  }
+
   const confirmed = window.confirm("Are you sure you want to delete?");
   if (!confirmed) return;
 
@@ -94,6 +135,10 @@ function onDelete(studentId) {
 }
 
 function onEdit(student) {
+  if (!canEditStudent()) {  // ← ADD THIS
+    showToast("Teachers cannot edit students!", "error");
+    return;
+  }
   nameInput.value = student.name;
   emailInput.value = student.email;
   classInput.value = student.studentClass;
@@ -386,30 +431,79 @@ addGradeBtn.addEventListener("click", () => {
     showToast("Please select a student!", "error");
     return;
   }
+
+  // Define student FIRST
+  const student = students.find(s => s.id === parseInt(selectedStudentId));
+
+  // THEN check permission
+  if (!canAddGrades(student)) {
+    showToast("You cannot add grades to this student!", "error");
+    return;
+  }
+
   if (!subject) {
     showToast("Please enter a subject name!", "error");
     return;
   }
+
   if (isNaN(score) || score < 0 || score > 100) {
     showToast("Score must be between 0-100!", "error");
     return;
   }
 
-  const student = students.find(s => s.id === parseInt(selectedStudentId));
   student.grades.push({ subject, score });
 
   saveStudents(students);
 
   updateGradesTable(students, filterStudent, gradesTableBody);
   updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
-  updateDashboardStats(students);  // ← ADD THIS LINE
+  updateDashboardStats(students);
 
   gradeSubject.value = "";
   gradeScore.value = "";
 
   showToast("Grade added successfully!", "success");
 });
+// ── ADD TEACHER ────────────────────────────────
+addTeacherBtn.addEventListener("click", () => {
+  const name = teacherName.value.trim();
+  const username = teacherUsername.value.trim();
+  const password = teacherPassword.value.trim();
 
+  // Validate
+  if (!name || !username || !password) {
+    showToast("Please fill all fields!", "error");
+    return;
+  }
+
+  if (editingTeacherId === null) {
+    // ADDING
+    const teacher = new Teacher(
+      Date.now(),
+      name,
+      username,
+      password
+    );
+    teachers.push(teacher);
+    showToast("Teacher added successfully!");
+  } else {
+    // UPDATING
+    const teacherToEdit = teachers.find(t => t.id === editingTeacherId);
+    teacherToEdit.name = name;
+    teacherToEdit.username = username;
+    teacherToEdit.password = password;
+    editingTeacherId = null;
+    addTeacherBtn.textContent = "Add Teacher";
+    showToast("Teacher updated!", "info");
+  }
+
+  saveTeachers(teachers);
+  renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
+
+  teacherName.value = "";
+  teacherUsername.value = "";
+  teacherPassword.value = "";
+});
 // ── GRADES PAGE ────────────────────────────────
 filterStudent.addEventListener("change", () => {
   updateGradesTable(students, filterStudent, gradesTableBody);

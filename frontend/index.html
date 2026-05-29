@@ -47,6 +47,9 @@
         <a href="#" class="nav-item" data-section="grades">
           📝 Grades
         </a>
+        <a href="#" class="nav-item" data-section="teacher">
+          👨‍🏫teacher
+        </a>
       </nav>
 
       <div id="sidebar-footer">
@@ -168,7 +171,7 @@
             <option value="">All Students</option>
           </select>
           <input type="text" id="gradeSubject" placeholder="Subject (Math, Science, English...)" />
-          <input type="text" id="gradeScore" placeholder="Score (0-100)" min="0" max="100" />
+          <input type="number" id="gradeScore" placeholder="Score (0-100)" min="0" max="100" />
           <button id="addGradeBtn">Add Grade</button>
         </div>
 
@@ -202,6 +205,35 @@
           <tbody id="gradesTableBody"></tbody>
         </table>
       </section>
+
+      <!-- TEACHERS SECTION -->
+      <section id="section-teacher" class="section">
+        <h1>Teachers</h1>
+
+        <!-- FORM -->
+        <div id="form-container">
+          <input type="text" id="teacherName" placeholder="Teacher Name">
+          <input type="text" id="teacherUsername" placeholder="Username">
+          <input type="password" id="teacherPassword" placeholder="Password">
+          <button id="addTeacherBtn">Add Teacher</button>
+        </div>
+
+        <!-- TABLE -->
+        <table id="teachersTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="teachers"></tbody>
+        </table>
+      </section>
+
+
     </main>
   </div>
 
