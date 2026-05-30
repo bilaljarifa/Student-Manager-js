@@ -70,3 +70,11 @@ export function loadExams() {
 
   return JSON.parse(stored);
 }
+// Save/load attendance
+export function saveAttendance(attendance) {
+  localStorage.setItem("attendance", JSON.stringify(attendance));
+}
+
+export function loadAttendance() {
+  return JSON.parse(localStorage.getItem("attendance")) || [];
+}

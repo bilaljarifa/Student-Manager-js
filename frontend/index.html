@@ -53,6 +53,9 @@
         <a href="#" class="nav-item" data-section="exams">
           📋 Exams
         </a>
+        <a href="#" class="nav-item" data-section="attendance">
+          📅 Attendance
+        </a>
       </nav>
 
       <div id="sidebar-footer">
@@ -289,6 +292,48 @@
           </thead>
           <tbody id="exams"></tbody>
         </table>
+      </section>
+      <!-- ATTENDANCE SECTION -->
+      <section id="section-attendance" class="section">
+        <h1>Attendance</h1>
+
+        <!-- FORM -->
+        <div id="form-container">
+          <select id="attendanceStudent">
+            <option value="">Select Student</option>
+          </select>
+          <input type="date" id="attendanceDate" />
+          <input type="text" id="attendanceSubject" placeholder="Subject/Class">
+          <select id="attendanceStatus">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+            <option value="Excused">Excused</option>
+          </select>
+          <button id="addAttendanceBtn">Mark Attendance</button>
+        </div>
+
+        <!-- TABLE -->
+        <table id="attendanceTable">
+          <thead>
+            <tr>
+              <th>Student Name</th>
+              <th>Date</th>
+              <th>Subject</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="attendance"></tbody>
+        </table>
+
+        <!-- STATISTICS -->
+        <div id="attendanceStats">
+          <div class="stat-box">
+            <p>Overall Attendance %</p>
+            <p id="overallAttendance">0%</p>
+          </div>
+        </div>
       </section>
     </main>
   </div>

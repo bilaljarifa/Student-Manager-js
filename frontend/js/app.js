@@ -20,6 +20,9 @@ import { saveTeachers } from "./storage.js";
 import { Exam } from "./exam.js";
 import { renderExams } from "./exam-ui.js";
 import { saveExams, loadExams } from "./storage.js";
+import { Attendance } from "./attendance.js";
+import { renderAttendance, getAttendancePercentage } from "./attendance-ui.js";
+import { saveAttendance, loadAttendance } from "./storage.js";
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
 // if no "isLoggedIn" in localStorage → kick user to login page
@@ -69,6 +72,14 @@ const examDate = document.querySelector("#examDate");
 const examTotalMarks = document.querySelector("#examTotalMarks");
 const addExamBtn = document.querySelector("#addExamBtn");
 const examsContainer = document.querySelector("#exams");
+// ── ATTENDANCE PAGE SELECTORS ──────────────────────
+const attendanceStudent = document.querySelector("#attendanceStudent");
+const attendanceDate = document.querySelector("#attendanceDate");
+const attendanceSubject = document.querySelector("#attendanceSubject");
+const attendanceStatus = document.querySelector("#attendanceStatus");
+const addAttendanceBtn = document.querySelector("#addAttendanceBtn");
+const attendanceContainer = document.querySelector("#attendance");
+const overallAttendance = document.querySelector("#overallAttendance");
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
 let editingTeacherId = null;        // ← NEW: track which teacher we're editing
@@ -78,7 +89,8 @@ let currentPage = 1;
 const studentsPerPage = 10;
 let editingExamId = null;
 const exams = loadExams();    // load exams from localStorage
-
+let editingAttendanceId = null;
+const attendance = loadAttendance();    // load attendance from localStorage    
 // ── INITIAL RENDER ─────────────────────────────────────
 const roleFilteredStudents = filterStudentsByRole(students);
 renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher); // ← NEW
@@ -92,6 +104,8 @@ renderGradesPage(students, filterStudent);
 updateGradesTable(students, filterStudent, gradesTableBody);
 updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
 renderExams(examsContainer, exams, onDeleteExam, onEditExam);
+updateAttendanceStudentDropdown();
+
 // ── FUNCTIONS ──────────────────────────────────────────
 displayWelcome();
 // ── TEACHERS FUNCTIONS ──────────────────────────
@@ -348,7 +362,109 @@ async function onDeleteExam(examId) {
   renderExams(examsContainer, exams, onDeleteExam, onEditExam);
   showToast("Exam deleted!", "error");
 }
+// ── ATTENDANCE FUNCTIONS ──────────────────────────
+
+function updateAttendanceStudentDropdown() {
+  attendanceStudent.innerHTML = '<option value="">Select Student</option>';
+
+  students.forEach((student) => {
+    const option = document.createElement("option");
+    option.value = student.id;
+    option.textContent = student.name;
+    attendanceStudent.appendChild(option);
+  });
+}
+
+function renderAttendanceRecords(studentId) {
+  const studentAttendance = attendance.filter(a => a.studentId === parseInt(studentId));
+  const student = students.find(s => s.id === parseInt(studentId));
+
+  renderAttendance(attendanceContainer, studentAttendance, student.name, onDeleteAttendance, onEditAttendance);
+  updateAttendanceStats(studentId);
+}
+
+function updateAttendanceStats(studentId) {
+  const percentage = getAttendancePercentage(attendance, parseInt(studentId));
+  overallAttendance.textContent = percentage + "%";
+}
+
+function onEditAttendance(record) {
+  attendanceDate.value = record.date;
+  attendanceSubject.value = record.subject;
+  attendanceStatus.value = record.status;
+
+  editingAttendanceId = record.id;
+  addAttendanceBtn.textContent = "Update Attendance";
+  showToast("Editing attendance...", "info");
+}
+
+async function onDeleteAttendance(attendanceId) {
+  const confirmed = window.confirm("Delete this attendance record?");
+  if (!confirmed) return;
+
+  const updatedAttendance = attendance.filter(a => a.id !== attendanceId);
+  attendance.length = 0;
+  attendance.push(...updatedAttendance);
+
+  saveAttendance(attendance);
+  const selectedStudentId = attendanceStudent.value;
+  renderAttendanceRecords(selectedStudentId);
+  showToast("Attendance deleted!", "error");
+}
 // ── EVENT LISTENERS ────────────────────────────────────
+// ── ATTENDANCE STUDENT DROPDOWN ─────────────────────
+attendanceStudent.addEventListener("change", () => {
+  if (attendanceStudent.value) {
+    renderAttendanceRecords(attendanceStudent.value);
+  } else {
+    attendanceContainer.innerHTML = "";
+    overallAttendance.textContent = "0%";
+  }
+});
+
+// ── ADD ATTENDANCE ──────────────────────────────────
+addAttendanceBtn.addEventListener("click", () => {
+  const studentId = attendanceStudent.value;
+  const date = attendanceDate.value;
+  const subject = attendanceSubject.value.trim();
+  const status = attendanceStatus.value;
+
+  // Validate
+  if (!studentId || !date || !subject) {
+    showToast("Please fill all fields!", "error");
+    return;
+  }
+
+  if (editingAttendanceId === null) {
+    // ADDING new attendance record
+    const attendanceRecord = new Attendance(
+      Date.now(),
+      parseInt(studentId),
+      date,
+      status,
+      subject
+    );
+    attendance.push(attendanceRecord);
+    showToast("Attendance marked!", "success");
+  } else {
+    // UPDATING attendance record
+    const recordToEdit = attendance.find(a => a.id === editingAttendanceId);
+    recordToEdit.date = date;
+    recordToEdit.status = status;
+    recordToEdit.subject = subject;
+    editingAttendanceId = null;
+    addAttendanceBtn.textContent = "Mark Attendance";
+    showToast("Attendance updated!", "info");
+  }
+
+  saveAttendance(attendance);
+  renderAttendanceRecords(studentId);
+
+  // Clear form
+  attendanceDate.value = "";
+  attendanceSubject.value = "";
+  attendanceStatus.value = "Present";
+});
 
 // logout — clear session and redirect to login
 logoutBtn.addEventListener("click", () => {
