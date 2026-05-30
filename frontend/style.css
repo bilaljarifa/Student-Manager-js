@@ -1312,3 +1312,66 @@ button:active {
         width: 100%;
     }
 }
+
+/* ── EXAMS TABLE ────────────────────────────── */
+#examsTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-top: 20px;
+
+
+}
+
+
+#examsTable thead {
+    background-color: var(--primary);
+}
+
+#examsTable th {
+    padding: 14px 16px;
+    text-align: left;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748B;
+    text-transform: uppercase;
+    color: white;
+    letter-spacing: 0.05em;
+}
+
+#examsTable td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+#examsTable tr:last-child td {
+    border-bottom: none;
+}
+
+#examsTable tbody tr:hover td {
+    background-color: rgba(79, 70, 229, 0.04);
+    cursor: pointer;
+}
+
+#examsTable .editBtn {
+    background-color: #EEF2FF !important;
+    color: #4F46E5 !important;
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+    margin-right: 5px;
+    width: auto !important;
+}
+
+#examsTable .deleteBtn {
+    background-color: #FEE2E2 !important;
+    color: #DC2626 !important;
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+    width: auto !important;
+}

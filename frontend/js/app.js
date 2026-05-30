@@ -14,9 +14,12 @@ import { renderGradesPage, updateGradesTable, updateGradesStats } from "./grades
 import { displayWelcome } from "./welcome.js";
 import { updateDashboardStats } from "./dashboardStats.js";
 import { loadTeachers } from "./storage.js";
-import { Teacher } from "./teacher.js";        // Teacher blueprint
-import { renderTeachers } from "./teacher-ui.js"; // render teachers table
-import { saveTeachers } from "./storage.js"; // ← ADD THIS
+import { Teacher } from "./teacher.js";
+import { renderTeachers } from "./teacher-ui.js";
+import { saveTeachers } from "./storage.js";
+import { Exam } from "./exam.js";
+import { renderExams } from "./exam-ui.js";
+import { saveExams, loadExams } from "./storage.js";
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
 // if no "isLoggedIn" in localStorage → kick user to login page
@@ -51,13 +54,21 @@ const addGradeBtn = document.querySelector("#addGradeBtn");
 const highestGrade = document.querySelector("#highestGrade");
 const lowestGrade = document.querySelector("#lowestGrade");
 const teacherName = document.querySelector("#teacherName");
+const teacherEmail = document.querySelector("#teacherEmail");
 const teacherUsername = document.querySelector("#teacherUsername");
 const teacherPassword = document.querySelector("#teacherPassword");
+const teacherDepartment = document.querySelector("#teacherDepartment");
+const teacherContractStatus = document.querySelector("#teacherContractStatus");
+const teacherCourseWorkload = document.querySelector("#teacherCourseWorkload");
 const addTeacherBtn = document.querySelector("#addTeacherBtn");
 const teachersContainer = document.querySelector("#teachers");
-const teacherClass = document.querySelector("#teacherClass");
-const teacherRoom = document.querySelector("#teacherRoom");
-const teacherSchedule = document.querySelector("#teacherSchedule");
+// ── EXAMS PAGE SELECTORS ──────────────────────
+const examName = document.querySelector("#examName");
+const examSubject = document.querySelector("#examSubject");
+const examDate = document.querySelector("#examDate");
+const examTotalMarks = document.querySelector("#examTotalMarks");
+const addExamBtn = document.querySelector("#addExamBtn");
+const examsContainer = document.querySelector("#exams");
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
 let editingTeacherId = null;        // ← NEW: track which teacher we're editing
@@ -65,7 +76,8 @@ const students = loadStudents();
 const teachers = loadTeachers();    // ← NEW: load teachers from localStorage
 let currentPage = 1;
 const studentsPerPage = 10;
-
+let editingExamId = null;
+const exams = loadExams();    // load exams from localStorage
 
 // ── INITIAL RENDER ─────────────────────────────────────
 const roleFilteredStudents = filterStudentsByRole(students);
@@ -79,24 +91,24 @@ updatePagination();
 renderGradesPage(students, filterStudent);
 updateGradesTable(students, filterStudent, gradesTableBody);
 updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
-updateTeacherClassFilter();
-
+renderExams(examsContainer, exams, onDeleteExam, onEditExam);
 // ── FUNCTIONS ──────────────────────────────────────────
 displayWelcome();
 // ── TEACHERS FUNCTIONS ──────────────────────────
 function onEditTeacher(teacher) {
-  // CHECK IF ADMIN
   if (!isAdmin()) {
     showToast("Only admins can edit teachers!", "error");
     return;
   }
 
+  // Fill form with teacher data
   teacherName.value = teacher.name;
+  teacherEmail.value = teacher.email;
   teacherUsername.value = teacher.username;
   teacherPassword.value = teacher.password;
-  teacherClass.value = teacher.teacherClass;
-  teacherRoom.value = teacher.room;
-  teacherSchedule.value = teacher.schedule;
+  teacherDepartment.value = teacher.department || "";
+  teacherContractStatus.value = teacher.contractStatus || "Permanent";
+  teacherCourseWorkload.value = teacher.courseWorkload || 0;
 
   editingTeacherId = teacher.id;
   addTeacherBtn.textContent = "Update Teacher";
@@ -165,7 +177,7 @@ function onEdit(student) {
   showToast("Editing student...", "info");
 }
 
-async  function clearAll() {
+async function clearAll() {
   const confirmed = await showConfirm("Are you sure you want to delete all?");
   if (!confirmed) return;
 
@@ -192,20 +204,6 @@ function updateClassFilter() {
     option.value = className;
     option.textContent = className;
     classFilter.appendChild(option);
-  });
-}
-function updateTeacherClassFilter() {
-  const uniqueClasses = [...new Set(students.map((student) => {
-    return student.studentClass;
-  }))];
-
-  teacherClass.innerHTML = '<option value="">Select Class</option>';
-
-  uniqueClasses.forEach((className) => {
-    const option = document.createElement("option");
-    option.value = className;
-    option.textContent = className;
-    teacherClass.appendChild(option);
   });
 }
 
@@ -326,6 +324,30 @@ function onRowClick(student) {
 
   document.querySelector("#modalOverlay").classList.add("active");
 }
+// ── EXAMS FUNCTIONS ──────────────────────────────
+
+function onEditExam(exam) {
+  examName.value = exam.name;
+  examSubject.value = exam.subject;
+  examDate.value = exam.date;
+  examTotalMarks.value = exam.totalMarks;
+
+  editingExamId = exam.id;
+  addExamBtn.textContent = "Update Exam";
+  showToast("Editing exam...", "info");
+}
+
+async function onDeleteExam(examId) {
+  const confirmed = await showConfirm("Delete this exam?");
+  if (!confirmed) return;
+
+  const updatedExams = exams.filter(e => e.id !== examId);
+  exams.length = 0;
+  exams.push(...updatedExams);
+  saveExams(exams);
+  renderExams(examsContainer, exams, onDeleteExam, onEditExam);
+  showToast("Exam deleted!", "error");
+}
 // ── EVENT LISTENERS ────────────────────────────────────
 
 // logout — clear session and redirect to login
@@ -419,7 +441,7 @@ classFilter.addEventListener("change", () => {
   renderStudents(studentsContainer, getFilteredStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 });
 // ── DELETE GRADE ────────────────────────────────
-document.addEventListener("click",async  (e) => {
+document.addEventListener("click", async (e) => {
   if (e.target.classList.contains("deleteGradeBtn")) {
     const confirmed = await showConfirm("Delete this grade?");
     if (!confirmed) return;
@@ -449,15 +471,17 @@ addTeacherBtn.addEventListener("click", () => {
     return;
   }
 
+  // Get form values
   const name = teacherName.value.trim();
+  const email = teacherEmail.value.trim();                    // ← NEW
   const username = teacherUsername.value.trim();
   const password = teacherPassword.value.trim();
-  const classAssigned = teacherClass.value.trim();
-  const room = teacherRoom.value.trim();
-  const schedule = teacherSchedule.value.trim();
+  const department = teacherDepartment.value.trim();          // ← NEW
+  const contractStatus = teacherContractStatus.value;         // ← NEW
+  const courseWorkload = parseInt(teacherCourseWorkload.value) || 0; // ← NEW
 
   // Validate
-  if (!name || !username || !password) {
+  if (!name || !email || !username || !password) {
     showToast("Please fill all required fields!", "error");
     return;
   }
@@ -467,11 +491,12 @@ addTeacherBtn.addEventListener("click", () => {
     const teacher = new Teacher(
       Date.now(),
       name,
+      email,                    // ← NEW
       username,
       password,
-      classAssigned,
-      room,
-      schedule
+      department,               // ← NEW
+      contractStatus,           // ← NEW
+      courseWorkload            // ← NEW
     );
     teachers.push(teacher);
     showToast("Teacher added successfully!");
@@ -479,11 +504,12 @@ addTeacherBtn.addEventListener("click", () => {
     // UPDATING TEACHER
     const teacherToEdit = teachers.find(t => t.id === editingTeacherId);
     teacherToEdit.name = name;
+    teacherToEdit.email = email;                    // ← NEW
     teacherToEdit.username = username;
     teacherToEdit.password = password;
-    teacherToEdit.teacherClass = classAssigned;
-    teacherToEdit.room = room;
-    teacherToEdit.schedule = schedule;
+    teacherToEdit.department = department;         // ← NEW
+    teacherToEdit.contractStatus = contractStatus; // ← NEW
+    teacherToEdit.courseWorkload = courseWorkload; // ← NEW
     editingTeacherId = null;
     addTeacherBtn.textContent = "Add Teacher";
     showToast("Teacher updated!", "info");
@@ -494,16 +520,66 @@ addTeacherBtn.addEventListener("click", () => {
 
   // Clear form
   teacherName.value = "";
+  teacherEmail.value = "";                // ← NEW
   teacherUsername.value = "";
   teacherPassword.value = "";
-  teacherClass.value = "";
-  teacherRoom.value = "";
-  teacherSchedule.value = "";
+  teacherDepartment.value = "";           // ← NEW
+  teacherContractStatus.value = "Permanent"; // ← NEW
+  teacherCourseWorkload.value = "";       // ← NEW
 });
 // ── UPDATE WHEN DROPDOWN CHANGES ────────────────────────────────
 filterStudent.addEventListener("change", () => {
   updateGradesTable(students);
   updateGradesStats(students);
+});
+
+
+// ── ADD EXAM ────────────────────────────────────
+addExamBtn.addEventListener("click", () => {
+  const name = examName.value.trim();
+  const subject = examSubject.value.trim();
+  const date = examDate.value;
+  const totalMarks = Number(examTotalMarks.value);
+
+  // Validate
+  if (!name || !subject || !date || isNaN(totalMarks) || totalMarks <= 0) {
+    showToast("Please fill all fields correctly!", "error");
+    return;
+  }
+
+  if (editingExamId === null) {
+    // ADDING
+    const exam = new Exam(
+      Date.now(),
+      name,
+      subject,
+      date,
+      totalMarks,
+      Math.floor(totalMarks * 0.4),  // passing score = 40% of total
+      localStorage.getItem("username")  // createdBy = current teacher
+    );
+    exams.push(exam);
+    showToast("Exam added successfully!");
+  } else {
+    // UPDATING
+    const examToEdit = exams.find(e => e.id === editingExamId);
+    examToEdit.name = name;
+    examToEdit.subject = subject;
+    examToEdit.date = date;
+    examToEdit.totalMarks = totalMarks;
+    examToEdit.passingScore = Math.floor(totalMarks * 0.4);
+    editingExamId = null;
+    addExamBtn.textContent = "Add Exam";
+    showToast("Exam updated!", "info");
+  }
+
+  saveExams(exams);
+  renderExams(examsContainer, exams, onDeleteExam, onEditExam);
+
+  examName.value = "";
+  examSubject.value = "";
+  examDate.value = "";
+  examTotalMarks.value = "";
 });
 // ──  update grades  ────────────────────────────────────
 

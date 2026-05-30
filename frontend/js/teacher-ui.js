@@ -1,6 +1,7 @@
 // teacher-ui.js
 
 import { getAverage, getStatus } from "./grades.js";
+// teacher-ui.js
 
 export function renderTeachers(teachersContainer, teachers, onDelete, onEdit) {
     teachersContainer.innerHTML = "";
@@ -23,10 +24,10 @@ export function renderTeachers(teachersContainer, teachers, onDelete, onEdit) {
         row.innerHTML = `
             <td>${index + 1}</td>
             <td>${teacher.name}</td>
-            <td>${teacher.username}</td>
-            <td>${teacher.teacherClass || "-"}</td>
-            <td>${teacher.room || "-"}</td>
-            <td>${teacher.schedule || "-"}</td>
+            <td>${teacher.email}</td>
+            <td>${teacher.department || "-"}</td>
+            <td>${teacher.contractStatus || "-"}</td>
+            <td>${teacher.courseWorkload || 0} classes</td>
             <td>
                 <button class="editBtn">Edit</button>
                 <button class="deleteBtn">Delete</button>

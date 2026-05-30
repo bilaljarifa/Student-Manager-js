@@ -13,11 +13,7 @@
       studentsContainer.innerHTML = `
         <tr>
           <td colspan="8" id="emptyState">
-            <p><img 
-    src="https://img.icons8.com/?size=100&id=37839&format=png&color=000000" 
-    alt="icon"
-    width="50"
-  /></p>
+            <p></p>
             <p>No students found</p>
             <p>Add your first student to get started!</p>
           </td>
