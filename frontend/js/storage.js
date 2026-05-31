@@ -78,3 +78,13 @@ export function saveAttendance(attendance) {
 export function loadAttendance() {
   return JSON.parse(localStorage.getItem("attendance")) || [];
 }
+
+// Save/load courses
+export function saveCourses(courses) {
+  localStorage.setItem("courses", JSON.stringify(courses));
+}
+
+export function loadCourses() {
+  return JSON.parse(localStorage.getItem("courses")) || [];
+}
+// ── ENROLLMENT SELECTORS ──────────────────────

@@ -56,6 +56,13 @@
         <a href="#" class="nav-item" data-section="attendance">
           📅 Attendance
         </a>
+        <a href="#" class="nav-item" data-section="courses">
+          📚 Courses
+        </a>
+        <a href="#" class="nav-item" data-section="reports">
+          📈 Reports
+        </a>
+
       </nav>
 
       <div id="sidebar-footer">
@@ -335,6 +342,46 @@
           </div>
         </div>
       </section>
+      <!-- COURSES SECTION -->
+      <section id="section-courses" class="section">
+        <h1>Courses & Modules</h1>
+
+        <!-- FORM -->
+        <div id="form-container">
+          <input type="text" id="courseName" placeholder="Course Name (Mathematics)">
+          <input type="text" id="courseCode" placeholder="Course Code (MATH101)">
+          <input type="text" id="courseDescription" placeholder="Description">
+          <input type="number" id="courseCredits" placeholder="Credits" min="1" max="4">
+          <input type="text" id="courseSemester" placeholder="Semester (Fall 2025)">
+          <select id="courseTeacher">
+            <option value="">Select Teacher</option>
+          </select>
+          <button id="addCourseBtn">Add Course</button>
+        </div>
+
+        <!-- TABLE -->
+        <table id="coursesTable">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Credits</th>
+              <th>Semester</th>
+              <th>Students</th>
+              <th>Teacher</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="courses"></tbody>
+        </table>
+      </section>
+      <!-- REPORTS SECTION -->
+      <section id="section-reports" class="section">
+        <h1>Reports & Analytics</h1>
+        <button id="exportReportBtn">Export Report (PDF)</button>
+        <div id="reportsContainer"></div>
+      </section>
     </main>
   </div>
 
@@ -352,5 +399,7 @@
   </div>
   <script type="module" src="./js/app.js"></script>
 </body>
+<!-- ENROLLMENT MODAL -->
+<div id="enrollmentModalContainer"></div>
 
 </html>

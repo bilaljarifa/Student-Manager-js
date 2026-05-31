@@ -1,6 +1,6 @@
 // ── IMPORTS ────────────────────────────────────────────
 // each import brings in a function/class from another file
-
+import { renderEnrolledStudents } from "./enrollment-ui.js";
 import { isAdmin, isTeacher, filterStudentsByRole, canDeleteStudent, canEditStudent, canAddGrades } from "./role-management.js";
 import { Student } from "./student.js";
 import { validation } from "./validation.js";
@@ -22,7 +22,12 @@ import { renderExams } from "./exam-ui.js";
 import { saveExams, loadExams } from "./storage.js";
 import { Attendance } from "./attendance.js";
 import { renderAttendance, getAttendancePercentage } from "./attendance-ui.js";
+import { Course } from "./course.js";
+import { renderCourses, getCoursesByTeacher, getCoursesByStudent } from "./course-ui.js";
+import { saveCourses, loadCourses } from "./storage.js";
 import { saveAttendance, loadAttendance } from "./storage.js";
+import { ReportGenerator } from "./reports.js";
+import { renderReportsSummary } from "./reports-ui.js";
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
 // if no "isLoggedIn" in localStorage → kick user to login page
@@ -65,6 +70,10 @@ const teacherContractStatus = document.querySelector("#teacherContractStatus");
 const teacherCourseWorkload = document.querySelector("#teacherCourseWorkload");
 const addTeacherBtn = document.querySelector("#addTeacherBtn");
 const teachersContainer = document.querySelector("#teachers");
+const enrollmentModalContainer = document.querySelector("#enrollmentModalContainer");
+// ── REPORTS PAGE SELECTORS ──────────────────────
+const reportsContainer = document.querySelector("#reportsContainer");
+const exportReportBtn = document.querySelector("#exportReportBtn");
 // ── EXAMS PAGE SELECTORS ──────────────────────
 const examName = document.querySelector("#examName");
 const examSubject = document.querySelector("#examSubject");
@@ -79,20 +88,35 @@ const attendanceSubject = document.querySelector("#attendanceSubject");
 const attendanceStatus = document.querySelector("#attendanceStatus");
 const addAttendanceBtn = document.querySelector("#addAttendanceBtn");
 const attendanceContainer = document.querySelector("#attendance");
+// ── COURSES PAGE SELECTORS ──────────────────────
+const courseName = document.querySelector("#courseName");
+const courseCode = document.querySelector("#courseCode");
+const courseDescription = document.querySelector("#courseDescription");
+const courseCredits = document.querySelector("#courseCredits");
+const courseSemester = document.querySelector("#courseSemester");
+const courseTeacher = document.querySelector("#courseTeacher");
+const addCourseBtn = document.querySelector("#addCourseBtn");
+const coursesContainer = document.querySelector("#courses");
 const overallAttendance = document.querySelector("#overallAttendance");
+// Report generator
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
 let editingTeacherId = null;        // ← NEW: track which teacher we're editing
 const students = loadStudents();
-const teachers = loadTeachers();    // ← NEW: load teachers from localStorage
+const teachers = loadTeachers();    // ← NEW: load teachers from loca
+// lStorage
 let currentPage = 1;
 const studentsPerPage = 10;
 let editingExamId = null;
 const exams = loadExams();    // load exams from localStorage
 let editingAttendanceId = null;
-const attendance = loadAttendance();    // load attendance from localStorage    
-// ── INITIAL RENDER ─────────────────────────────────────
+const attendance = loadAttendance();
+let editingCourseId = null;
+const courses = loadCourses();    // load courses from localStorage
 const roleFilteredStudents = filterStudentsByRole(students);
+
+const reportGenerator = new ReportGenerator(students, teachers, courses, exams, attendance);
+
 renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher); // ← NEW
 renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 updateDashboardStats(students);
@@ -105,6 +129,11 @@ updateGradesTable(students, filterStudent, gradesTableBody);
 updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
 renderExams(examsContainer, exams, onDeleteExam, onEditExam);
 updateAttendanceStudentDropdown();
+updateCourseTeacherDropdown();  // ← ADD THIS LINE
+updateCourseTeacherDropdown();
+renderCourses(coursesContainer, courses, teachers, onDeleteCourse, onEditCourse);
+generateAndRenderReport();  // ← ADD THIS
+
 
 // ── FUNCTIONS ──────────────────────────────────────────
 displayWelcome();
@@ -174,6 +203,223 @@ async function onDelete(studentId) {
     updateDashboardStats(students);
     showToast("Student deleted!", "error");
   }, 400);
+}
+// ── REPORTS FUNCTIONS ──────────────────────────
+
+function generateAndRenderReport() {
+  const summary = reportGenerator.generateDashboardSummary();
+  renderReportsSummary(reportsContainer, summary);
+}
+
+function exportReportPDF() {
+  const summary = reportGenerator.generateDashboardSummary();
+
+  let reportText = `
+STUDENT MANAGEMENT SYSTEM - REPORT
+Generated: ${new Date().toLocaleString()}
+
+=== SYSTEM OVERVIEW ===
+Total Students: ${summary.students}
+Total Teachers: ${summary.teachers}
+Total Courses: ${summary.courses}
+Total Exams: ${summary.exams}
+
+=== PAYMENT STATUS ===
+Paid: ${summary.paymentStats.paid}
+Pending: ${summary.paymentStats.pending}
+Paid Percentage: ${Math.round((summary.paymentStats.paid / summary.paymentStats.total) * 100)}%
+
+=== EXAM STATUS ===
+Upcoming Exams: ${summary.examStats.upcoming}
+Completed Exams: ${summary.examStats.completed}
+
+=== ATTENDANCE ===
+Overall Attendance: ${summary.overallAttendance}%
+
+=== STUDENTS BY CLASS ===
+${Object.entries(summary.studentsByClass).map(([cls, count]) => `${cls}: ${count}`).join('\n')}
+
+=== TEACHERS BY DEPARTMENT ===
+${Object.entries(summary.teachersByDept).map(([dept, count]) => `${dept}: ${count}`).join('\n')}
+
+=== STUDENTS PER COURSE ===
+${Object.entries(summary.studentsPerCourse).map(([code, count]) => `${code}: ${count}`).join('\n')}
+  `;
+
+  const blob = new Blob([reportText], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `report-${new Date().getTime()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast("Report exported!", "success");
+}
+// ── ENROLLMENT FUNCTIONS ──────────────────────
+
+function openEnrollmentModal(course) {
+  const modalHTML = `
+    <div id="enrollmentModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Enroll Students in Course: ${course.name}</h2>
+        
+        <div class="modal-body">
+          <div class="left-panel">
+            <h3>Available Students</h3>
+            <input type="text" id="searchEnrollStudent" placeholder="Search students...">
+            <div id="availableStudents"></div>
+          </div>
+          
+          <div class="right-panel">
+            <h3>Enrolled Students</h3>
+            <div id="enrolledStudents"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="closeEnrollmentModal">Close</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  enrollmentModalContainer.innerHTML = modalHTML;
+
+  const modal = document.querySelector("#enrollmentModal");
+  const availableStudents = document.querySelector("#availableStudents");
+  const enrolledStudents = document.querySelector("#enrolledStudents");
+  const searchInput = document.querySelector("#searchEnrollStudent");
+  const closeBtn = document.querySelector("#closeEnrollmentModal");
+
+  // Import here
+  import('./enrollment-ui.js').then(module => {
+    const { renderEnrolledStudents } = module;
+
+    // Render enrolled students
+    renderEnrolledStudents(enrolledStudents, course, students, (studentId) => {
+      onRemoveStudentFromCourse(course, studentId);
+    });
+  });
+
+  // Render available students
+  function renderAvailable(filter = "") {
+    availableStudents.innerHTML = "";
+
+    const available = students.filter(s =>
+      !course.students.includes(s.id) &&
+      s.name.toLowerCase().includes(filter.toLowerCase())
+    );
+
+    if (available.length === 0) {
+      availableStudents.innerHTML = "<p style='text-align:center; color: #999;'>No more students</p>";
+      return;
+    }
+
+    available.forEach((student) => {
+      const div = document.createElement("div");
+      div.className = "available-student-item";
+      div.innerHTML = `
+        <span>${student.name}</span>
+        <button class="enrollBtn" data-student-id="${student.id}">+ Enroll</button>
+      `;
+
+      div.querySelector(".enrollBtn").addEventListener("click", () => {
+        onEnrollStudent(course, student.id);
+      });
+
+      availableStudents.appendChild(div);
+    });
+  }
+
+  renderAvailable();
+
+  // Search filter
+  searchInput.addEventListener("input", () => {
+    renderAvailable(searchInput.value);
+  });
+
+  // Close modal
+  closeBtn.addEventListener("click", () => {
+    modal.remove();
+  });
+
+  modal.classList.add("active");
+}
+
+
+
+function onEnrollStudent(course, studentId) {
+  if (course.addStudent(studentId)) {
+    saveCourses(courses);
+
+    // Refresh modal
+    const enrolledDiv = document.querySelector("#enrolledStudents");
+    const searchInput = document.querySelector("#searchEnrollStudent");
+
+    renderEnrolledStudents(enrolledDiv, course, students, (id) => {
+      onRemoveStudentFromCourse(course, id);
+    });
+
+    // Refresh available
+    const availableDiv = document.querySelector("#availableStudents");
+    const available = students.filter(s =>
+      !course.students.includes(s.id) &&
+      s.name.toLowerCase().includes(searchInput.value.toLowerCase())
+    );
+
+    availableDiv.innerHTML = "";
+    available.forEach((student) => {
+      const div = document.createElement("div");
+      div.className = "available-student-item";
+      div.innerHTML = `
+        <span>${student.name}</span>
+        <button class="enrollBtn" data-student-id="${student.id}">+ Enroll</button>
+      `;
+      div.querySelector(".enrollBtn").addEventListener("click", () => {
+        onEnrollStudent(course, student.id);
+      });
+      availableDiv.appendChild(div);
+    });
+
+    showToast(`${students.find(s => s.id === studentId).name} enrolled!`, "success");
+  }
+}
+
+function onRemoveStudentFromCourse(course, studentId) {
+  const confirmed = window.confirm("Remove this student from course?");
+  if (!confirmed) return;
+
+  course.removeStudent(studentId);
+  saveCourses(courses);
+
+  const enrolledDiv = document.querySelector("#enrolledStudents");
+  renderEnrolledStudents(enrolledDiv, course, students, (id) => {
+    onRemoveStudentFromCourse(course, id);
+  });
+
+  // Refresh available
+  const searchInput = document.querySelector("#searchEnrollStudent");
+  const availableDiv = document.querySelector("#availableStudents");
+  const available = students.filter(s =>
+    !course.students.includes(s.id) &&
+    s.name.toLowerCase().includes(searchInput.value.toLowerCase())
+  );
+
+  availableDiv.innerHTML = "";
+  available.forEach((student) => {
+    const div = document.createElement("div");
+    div.className = "available-student-item";
+    div.innerHTML = `
+      <span>${student.name}</span>
+      <button class="enrollBtn" data-student-id="${student.id}">+ Enroll</button>
+    `;
+    div.querySelector(".enrollBtn").addEventListener("click", () => {
+      onEnrollStudent(course, student.id);
+    });
+    availableDiv.appendChild(div);
+  });
+
+  showToast("Student removed!", "error");
 }
 
 function onEdit(student) {
@@ -397,6 +643,44 @@ function onEditAttendance(record) {
   addAttendanceBtn.textContent = "Update Attendance";
   showToast("Editing attendance...", "info");
 }
+// ── COURSES FUNCTIONS ──────────────────────────
+
+function updateCourseTeacherDropdown() {
+  courseTeacher.innerHTML = '<option value="">Select Teacher</option>';
+
+  teachers.forEach((teacher) => {
+    const option = document.createElement("option");
+    option.value = teacher.id;
+    option.textContent = teacher.name;
+    courseTeacher.appendChild(option);
+  });
+}
+
+function onEditCourse(course) {
+  courseName.value = course.name;
+  courseCode.value = course.code;
+  courseDescription.value = course.description;
+  courseCredits.value = course.credits;
+  courseSemester.value = course.semester;
+  courseTeacher.value = course.teacher;
+
+  editingCourseId = course.id;
+  addCourseBtn.textContent = "Update Course";
+  showToast("Editing course...", "info");
+}
+
+async function onDeleteCourse(courseId) {
+  const confirmed = window.confirm("Delete this course?");
+  if (!confirmed) return;
+
+  const updatedCourses = courses.filter(c => c.id !== courseId);
+  courses.length = 0;
+  courses.push(...updatedCourses);
+
+  saveCourses(courses);
+  renderCourses(coursesContainer, courses, teachers, onDeleteCourse, onEditCourse);
+  showToast("Course deleted!", "error");
+}
 
 async function onDeleteAttendance(attendanceId) {
   const confirmed = window.confirm("Delete this attendance record?");
@@ -412,6 +696,8 @@ async function onDeleteAttendance(attendanceId) {
   showToast("Attendance deleted!", "error");
 }
 // ── EVENT LISTENERS ────────────────────────────────────
+// ── EXPORT REPORT ──────────────────────────────
+exportReportBtn.addEventListener("click", exportReportPDF);
 // ── ATTENDANCE STUDENT DROPDOWN ─────────────────────
 attendanceStudent.addEventListener("change", () => {
   if (attendanceStudent.value) {
@@ -421,7 +707,66 @@ attendanceStudent.addEventListener("change", () => {
     overallAttendance.textContent = "0%";
   }
 });
+document.addEventListener("click", (e) => {
+  if (e.target.classList.contains("enrollStudentsBtn")) {
+    const courseId = parseInt(e.target.closest("tr").dataset.courseId);
+    const course = courses.find(c => c.id === courseId);
+    openEnrollmentModal(course);
+  }
+});
+// ── ADD COURSE ──────────────────────────────────
+addCourseBtn.addEventListener("click", () => {
+  const name = courseName.value.trim();
+  const code = courseCode.value.trim();
+  const description = courseDescription.value.trim();
+  const credits = parseInt(courseCredits.value);
+  const semester = courseSemester.value.trim();
+  const teacherId = parseInt(courseTeacher.value);
 
+  // Validate
+  if (!name || !code || !description || isNaN(credits) || !semester || isNaN(teacherId)) {
+    showToast("Please fill all fields!", "error");
+    return;
+  }
+
+  if (editingCourseId === null) {
+    // ADDING new course
+    const course = new Course(
+      Date.now(),
+      name,
+      code,
+      description,
+      teacherId,
+      credits,
+      semester
+    );
+    courses.push(course);
+    showToast("Course added successfully!", "success");
+  } else {
+    // UPDATING course
+    const courseToEdit = courses.find(c => c.id === editingCourseId);
+    courseToEdit.name = name;
+    courseToEdit.code = code;
+    courseToEdit.description = description;
+    courseToEdit.credits = credits;
+    courseToEdit.semester = semester;
+    courseToEdit.teacher = teacherId;
+    editingCourseId = null;
+    addCourseBtn.textContent = "Add Course";
+    showToast("Course updated!", "info");
+  }
+
+  saveCourses(courses);
+  renderCourses(coursesContainer, courses, teachers, onDeleteCourse, onEditCourse);
+
+  // Clear form
+  courseName.value = "";
+  courseCode.value = "";
+  courseDescription.value = "";
+  courseCredits.value = "";
+  courseSemester.value = "";
+  courseTeacher.value = "";
+});
 // ── ADD ATTENDANCE ──────────────────────────────────
 addAttendanceBtn.addEventListener("click", () => {
   const studentId = attendanceStudent.value;
