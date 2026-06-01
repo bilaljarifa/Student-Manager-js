@@ -2,19 +2,30 @@
 <html lang="en">
 
 <head>
+  <!-- 🔵 META & TITLE -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Manager</title>
+
+  <!-- 🎨 STYLES -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- 📊 EXTERNAL LIBRARIES -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 </head>
 
 <body>
 
-  <!-- TOAST -->
+  <!-- ═══════════════════════════════════════════════════════════════════
+       🔔 TOAST NOTIFICATIONS (bottom right alerts)
+       ═══════════════════════════════════════════════════════════════════ -->
   <div id="toast-container"></div>
 
-  <!-- MODAL -->
+  <!-- ═══════════════════════════════════════════════════════════════════
+       👁️ STUDENT DETAIL MODAL (shows when clicking on student)
+       ═══════════════════════════════════════════════════════════════════ -->
   <div id="modalOverlay">
     <div id="modal">
       <button id="closeModal">✕</button>
@@ -28,43 +39,39 @@
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════════
+       📱 MAIN APP CONTAINER (sidebar + content)
+       ═══════════════════════════════════════════════════════════════════ -->
   <div id="app">
 
-    <!-- SIDEBAR -->
+    <!-- ═══════════════════════════════════════════════════════════════════
+         🏠 SIDEBAR (left navigation menu)
+         ═══════════════════════════════════════════════════════════════════ -->
     <aside id="sidebar">
+
+      <!-- SIDEBAR LOGO & TITLE -->
       <div id="sidebar-logo">
         <span>SM</span>
         <h2>Student Manager</h2>
       </div>
 
+      <!-- SIDEBAR NAVIGATION MENU (9 menu items) -->
       <nav id="sidebar-nav">
-        <a href="#" class="nav-item active" data-section="dashboard">
-          📊 Dashboard
-        </a>
-        <a href="#" class="nav-item" data-section="students">
-          👨‍🎓 Students
-        </a>
-        <a href="#" class="nav-item" data-section="grades">
-          📝 Grades
-        </a>
-        <a href="#" class="nav-item" data-section="teacher">
-          👨‍🏫teacher
-        </a>
-        <a href="#" class="nav-item" data-section="exams">
-          📋 Exams
-        </a>
-        <a href="#" class="nav-item" data-section="attendance">
-          📅 Attendance
-        </a>
-        <a href="#" class="nav-item" data-section="courses">
-          📚 Courses
-        </a>
-        <a href="#" class="nav-item" data-section="reports">
-          📈 Reports
-        </a>
-
+        <a href="#" class="nav-item active" data-section="dashboard">📊 Dashboard</a>
+        <a href="#" class="nav-item" data-section="students">👨‍🎓 Students</a>
+        <a href="#" class="nav-item" data-section="grades">📝 Grades</a>
+        <a href="#" class="nav-item" data-section="teacher">👨‍🏫teacher</a>
+        <a href="#" class="nav-item" data-section="exams">📋 Exams</a>
+        <a href="#" class="nav-item" data-section="attendance">📅 Attendance</a>
+        <a href="#" class="nav-item" data-section="courses">📚 Courses</a>
+        <a href="#" class="nav-item" data-section="reports">📈 Reports</a>
+        <a href="#" class="nav-item" data-section="analytics">📊 Analytics</a>
       </nav>
-
+      <div id="sidebarWelcome">
+        <h3 id="welcomeText"></h3>
+        <p id="dateText"></p>
+      </div>
+      <!-- SIDEBAR FOOTER (Welcome message + Logout + Dark Mode buttons) -->
       <div id="sidebar-footer">
         <span id="welcomeMsg"></span>
         <button id="logoutBtn">Logout</button>
@@ -72,17 +79,23 @@
       </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    <!-- ═══════════════════════════════════════════════════════════════════
+         📄 MAIN CONTENT AREA (all pages/sections)
+         ═══════════════════════════════════════════════════════════════════ -->
     <main id="main-content">
 
-      <!-- DASHBOARD SECTION -->
-
+      <!-- ───────────────────────────────────────────────────────────────
+           📊 PAGE 1: DASHBOARD
+           ─────────────────────────────────────────────────────────────── -->
       <div id="welcomeSection">
         <h2 id="welcomeText"></h2>
         <p id="dateText"></p>
       </div>
+
       <section id="section-dashboard" class="section active">
         <h1>Dashboard</h1>
+
+        <!-- Dashboard Stats Cards -->
         <div class="stat">
           <span>Passing Students</span>
           <span id="passingCount">0</span>
@@ -95,6 +108,8 @@
           <span>Total Classes</span>
           <span id="classCount">0</span>
         </div>
+
+        <!-- Dashboard Grid Stats -->
         <div id="dashboard">
           <div class="stat">
             <span>Total Students</span>
@@ -117,31 +132,46 @@
             <span id="pendingPercentage">0%</span>
           </div>
         </div>
+
+        <!-- Payment Chart -->
         <div id="chart-container">
           <canvas id="paymentChart"></canvas>
         </div>
       </section>
 
-      <!-- STUDENTS SECTION -->
+      <!-- ───────────────────────────────────────────────────────────────
+           👨‍🎓 PAGE 2: STUDENTS (CRUD operations)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-students" class="section">
-        <h1>Students</h1>
 
-        <!-- FORM -->
+        <!-- SEARCH BAR -->
+        <div id="search-bar">
+          <input type="text" id="search" placeholder="🔍 Search students by name, email, class...">
+        </div>
+
+        <!-- TOOLBAR (filters + action buttons) -->
+        <div id="students-toolbar">
+          <div class="toolbar-left">
+            <select id="classFilter">
+              <option value="">All Classes</option>
+            </select>
+            <select id="sortPayment">
+              <option value="">Sort by Payment</option>
+              <option value="Paid">Paid First</option>
+              <option value="Pending">Pending First</option>
+            </select>
+            <button id="sortBtn">Sort by Name</button>
+          </div>
+          <div class="toolbar-right">
+            <button id="clearAllBtn">🗑 Clear All</button>
+            <button id="exportBtn">⬇ Export CSV</button>
+          </div>
+        </div>
+
+        <!-- ADD STUDENT FORM -->
         <div id="form-container">
-          <select id="classFilter">
-            <option value="">All Classes</option>
-          </select>
-          <select id="sortPayment">
-            <option value="">Sort by Payment</option>
-            <option value="Paid">Paid First</option>
-            <option value="Pending">Pending First</option>
-          </select>
-          <button id="sortBtn">Sort by Name</button>
-          <button id="clearAllBtn">Clear All</button>
-          <button id="exportBtn">Export CSV</button>
-          <input type="text" id="search" placeholder="Search students...">
-          <input type="text" id="name" placeholder="Student Name">
-          <input type="email" id="email" placeholder="Student Email">
+          <input type="text" id="name" placeholder="Full Name">
+          <input type="email" id="email" placeholder="Email">
           <input type="text" id="studentClass" placeholder="Class">
           <select id="paymentStatus">
             <option value="Paid">Paid</option>
@@ -150,7 +180,7 @@
           <button id="addBtn">Add Student</button>
         </div>
 
-        <!-- TABLE -->
+        <!-- STUDENTS TABLE -->
         <table id="studentsTable">
           <thead>
             <tr>
@@ -167,14 +197,18 @@
           <tbody id="students"></tbody>
         </table>
 
-        <!-- PAGINATION -->
+        <!-- PAGINATION CONTROLS -->
         <div id="pagination">
           <button id="prevBtn">← Previous</button>
-          <span id="pageInfo">Page 1</span>
+          <span id="pageInfo">Page 1 of 1</span>
           <button id="nextBtn">Next →</button>
         </div>
+
       </section>
-      <!-- GRADES SECTION -->
+
+      <!-- ───────────────────────────────────────────────────────────────
+           📝 PAGE 3: GRADES (Add/update student grades)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-grades" class="section">
         <h1>Grades Management</h1>
 
@@ -188,7 +222,7 @@
           <button id="addGradeBtn">Add Grade</button>
         </div>
 
-        <!-- GRADES STATS -->
+        <!-- GRADE STATISTICS CARDS -->
         <div id="gradesStats">
           <div class="stat-box">
             <p>Average Grade</p>
@@ -219,18 +253,18 @@
         </table>
       </section>
 
-      <!-- TEACHERS SECTION -->
+      <!-- ───────────────────────────────────────────────────────────────
+           👨‍🏫 PAGE 4: TEACHERS (Admin only - add/edit/delete teachers)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-teacher" class="section">
         <h1>Teachers</h1>
 
-        <!-- FORM -->
+        <!-- ADD/EDIT TEACHER FORM -->
         <div id="form-container">
           <input type="text" id="teacherName" placeholder="Teacher Name">
           <input type="email" id="teacherEmail" placeholder="Email">
           <input type="text" id="teacherUsername" placeholder="Username">
           <input type="password" id="teacherPassword" placeholder="Password">
-
-          <!-- DEPARTMENT -->
           <select id="teacherDepartment">
             <option value="">Select Department</option>
             <option value="Mathematics">Mathematics</option>
@@ -241,22 +275,17 @@
             <option value="Arts">Arts</option>
             <option value="Other">Other</option>
           </select>
-
-          <!-- CONTRACT STATUS -->
           <select id="teacherContractStatus">
             <option value="Permanent">Permanent</option>
             <option value="Contract">Contract</option>
             <option value="Part-time">Part-time</option>
             <option value="Substitute">Substitute</option>
           </select>
-
-          <!-- COURSE WORKLOAD -->
           <input type="number" id="teacherCourseWorkload" placeholder="Course Workload (number of classes)" min="0">
-
           <button id="addTeacherBtn">Add Teacher</button>
         </div>
 
-        <!-- TABLE -->
+        <!-- TEACHERS TABLE -->
         <table id="teachersTable">
           <thead>
             <tr>
@@ -272,11 +301,14 @@
           <tbody id="teachers"></tbody>
         </table>
       </section>
-      <!-- EXAMS SECTION -->
+
+      <!-- ───────────────────────────────────────────────────────────────
+           📋 PAGE 5: EXAMS (Create/manage exams)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-exams" class="section">
         <h1>Exams</h1>
 
-        <!-- FORM -->
+        <!-- ADD EXAM FORM -->
         <div id="form-container">
           <input type="text" id="examName" placeholder="Exam Name">
           <input type="text" id="examSubject" placeholder="Subject">
@@ -285,7 +317,7 @@
           <button id="addExamBtn">Add Exam</button>
         </div>
 
-        <!-- TABLE -->
+        <!-- EXAMS TABLE -->
         <table id="examsTable">
           <thead>
             <tr>
@@ -300,11 +332,14 @@
           <tbody id="exams"></tbody>
         </table>
       </section>
-      <!-- ATTENDANCE SECTION -->
+
+      <!-- ───────────────────────────────────────────────────────────────
+           📅 PAGE 6: ATTENDANCE (Mark daily attendance)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-attendance" class="section">
         <h1>Attendance</h1>
 
-        <!-- FORM -->
+        <!-- MARK ATTENDANCE FORM -->
         <div id="form-container">
           <select id="attendanceStudent">
             <option value="">Select Student</option>
@@ -320,7 +355,7 @@
           <button id="addAttendanceBtn">Mark Attendance</button>
         </div>
 
-        <!-- TABLE -->
+        <!-- ATTENDANCE TABLE -->
         <table id="attendanceTable">
           <thead>
             <tr>
@@ -334,7 +369,7 @@
           <tbody id="attendance"></tbody>
         </table>
 
-        <!-- STATISTICS -->
+        <!-- ATTENDANCE STATISTICS -->
         <div id="attendanceStats">
           <div class="stat-box">
             <p>Overall Attendance %</p>
@@ -342,11 +377,14 @@
           </div>
         </div>
       </section>
-      <!-- COURSES SECTION -->
+
+      <!-- ───────────────────────────────────────────────────────────────
+           📚 PAGE 7: COURSES (Manage courses + enrollment)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-courses" class="section">
         <h1>Courses & Modules</h1>
 
-        <!-- FORM -->
+        <!-- ADD COURSE FORM -->
         <div id="form-container">
           <input type="text" id="courseName" placeholder="Course Name (Mathematics)">
           <input type="text" id="courseCode" placeholder="Course Code (MATH101)">
@@ -359,7 +397,7 @@
           <button id="addCourseBtn">Add Course</button>
         </div>
 
-        <!-- TABLE -->
+        <!-- COURSES TABLE -->
         <table id="coursesTable">
           <thead>
             <tr>
@@ -376,17 +414,78 @@
           <tbody id="courses"></tbody>
         </table>
       </section>
-      <!-- REPORTS SECTION -->
+
+      <!-- ───────────────────────────────────────────────────────────────
+           📈 PAGE 8: REPORTS (Analytics & export)
+           ─────────────────────────────────────────────────────────────── -->
       <section id="section-reports" class="section">
         <h1>Reports & Analytics</h1>
         <button id="exportReportBtn">Export Report (PDF)</button>
         <div id="reportsContainer"></div>
       </section>
+
+      <!-- ───────────────────────────────────────────────────────────────
+           📊 PAGE 9: ANALYTICS (Charts & statistics)
+           ─────────────────────────────────────────────────────────────── -->
+      <section id="section-analytics" class="section">
+        <h1>Analytics & Charts</h1>
+
+        <!-- GRADE DISTRIBUTION CHART -->
+        <div id="chartContainer"
+          style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 30px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <h2>Grade Distribution</h2>
+          <canvas id="gradeDistributionChart"></canvas>
+        </div>
+
+        <!-- PERFORMANCE STATISTICS -->
+        <div
+          style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 30px;">
+          <div
+            style="background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <p style="color: #666; font-size: 0.85rem; margin: 0 0 8px 0;">TOTAL STUDENTS</p>
+            <p id="totalStudentsStats" style="font-size: 2rem; font-weight: 700; color: #2563EB; margin: 0;">0</p>
+          </div>
+          <div
+            style="background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <p style="color: #666; font-size: 0.85rem; margin: 0 0 8px 0;">AVG GRADE</p>
+            <p id="avgGradeStats" style="font-size: 2rem; font-weight: 700; color: #10B981; margin: 0;">0</p>
+          </div>
+          <div
+            style="background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <p style="color: #666; font-size: 0.85rem; margin: 0 0 8px 0;">TOTAL GRADES</p>
+            <p id="totalGradesStats" style="font-size: 2rem; font-weight: 700; color: #F59E0B; margin: 0;">0</p>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════════
+       ✏️ EDIT STUDENT MODAL
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div id="editModalOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="text-align:left; width:460px;">
+      <h3 style="margin-bottom:20px;">✏️ Edit Student</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <input type="text" id="editName" class="edit-input" placeholder="Full Name">
+        <input type="email" id="editEmail" class="edit-input" placeholder="Email">
+        <input type="text" id="editClass" class="edit-input" placeholder="Class">
+        <select id="editPayment" class="edit-input">
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+        </select>
+      </div>
+      <div class="confirm-buttons" style="margin-top:24px;">
+        <button id="editCancelBtn" class="confirm-cancel">Cancel</button>
+        <button id="editSaveBtn" class="confirm-ok">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- CUSTOM CONFIRMATION MODAL -->
+  <!-- ═══════════════════════════════════════════════════════════════════
+       🔐 CUSTOM CONFIRMATION MODAL (Delete/Confirm actions)
+       ═══════════════════════════════════════════════════════════════════ -->
   <div id="confirmOverlay" class="confirm-overlay">
     <div class="confirm-modal">
       <h3 id="confirmTitle">Confirm Action</h3>
@@ -397,9 +496,17 @@
       </div>
     </div>
   </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       💾 ENROLLMENT MODAL (Enroll students in courses)
+       ═══════════════════════════════════════════════════════════════════ -->
+  <div id="enrollmentModalContainer"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       🚀 JAVASCRIPT - Main app controller
+       ═══════════════════════════════════════════════════════════════════ -->
   <script type="module" src="./js/app.js"></script>
+
 </body>
-<!-- ENROLLMENT MODAL -->
-<div id="enrollmentModalContainer"></div>
 
 </html>

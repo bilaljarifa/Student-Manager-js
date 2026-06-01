@@ -28,6 +28,7 @@ import { saveCourses, loadCourses } from "./storage.js";
 import { saveAttendance, loadAttendance } from "./storage.js";
 import { ReportGenerator } from "./reports.js";
 import { renderReportsSummary } from "./reports-ui.js";
+import { getGradeDistribution, getStudentPerformanceStats } from "./analytics.js";
 // ── AUTH CHECK ─────────────────────────────────────────
 // this runs immediately when the page loads
 // if no "isLoggedIn" in localStorage → kick user to login page
@@ -98,11 +99,13 @@ const courseTeacher = document.querySelector("#courseTeacher");
 const addCourseBtn = document.querySelector("#addCourseBtn");
 const coursesContainer = document.querySelector("#courses");
 const overallAttendance = document.querySelector("#overallAttendance");
+const analyticsContainer = document.querySelector("#analytics");
 // Report generator
 // ── STATE ──────────────────────────────────────────────
 let editingStudentId = null;
 let editingTeacherId = null;        // ← NEW: track which teacher we're editing
 const students = loadStudents();
+updateAnalytics(students);  // Add this line
 const teachers = loadTeachers();    // ← NEW: load teachers from loca
 // lStorage
 let currentPage = 1;
@@ -156,6 +159,59 @@ function onEditTeacher(teacher) {
   editingTeacherId = teacher.id;
   addTeacherBtn.textContent = "Update Teacher";
   showToast("Editing teacher...", "info");
+}
+function updateAnalytics(students) {
+  // Get grade distribution
+  const distribution = getGradeDistribution(students);
+  const stats = getStudentPerformanceStats(students);
+
+  // Update stats
+  document.querySelector("#totalStudentsStats").textContent = stats.totalStudents;
+  document.querySelector("#avgGradeStats").textContent = stats.averageGrade;
+  document.querySelector("#totalGradesStats").textContent = stats.totalGrades;
+
+  // Create chart
+  const ctx = document.querySelector("#gradeDistributionChart");
+
+  if (window.gradeChart) {
+    window.gradeChart.destroy();
+  }
+
+  window.gradeChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['A (90-100)', 'B (80-89)', 'C (70-79)', 'D (60-69)', 'F (0-59)'],
+      datasets: [{
+        label: 'Number of Students',
+        data: [distribution.A, distribution.B, distribution.C, distribution.D, distribution.F],
+        backgroundColor: [
+          '#10B981',
+          '#3B82F6',
+          '#F59E0B',
+          '#EF4444',
+          '#6B7280'
+        ],
+        borderRadius: 6,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1
+          }
+        }
+      }
+    }
+  });
 }
 async function onDeleteTeacher(teacherId) {
   // CHECK IF ADMIN
@@ -427,16 +483,89 @@ function onEdit(student) {
     showToast("Teachers cannot edit students!", "error");
     return;
   }
-  nameInput.value = student.name;
-  emailInput.value = student.email;
-  classInput.value = student.studentClass;
-  paymentInput.value = student.paymentStatus;
 
-  editingStudentId = student.id;
-  addBtn.textContent = "Update Student";
-  showToast("Editing student...", "info");
+  // Fill the EDIT MODAL with student data
+  document.querySelector("#editName").value = student.name;
+  document.querySelector("#editEmail").value = student.email;
+  document.querySelector("#editClass").value = student.studentClass;
+  document.querySelector("#editPayment").value = student.paymentStatus;
+
+  // Open the modal
+  document.querySelector("#editModalOverlay").classList.add("active");
+
+  // Save button
+  document.querySelector("#editSaveBtn").onclick = () => {
+    student.name = document.querySelector("#editName").value.trim();
+    student.email = document.querySelector("#editEmail").value.trim();
+    student.studentClass = document.querySelector("#editClass").value.trim();
+    student.paymentStatus = document.querySelector("#editPayment").value;
+
+    saveStudents(students);
+    renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
+    updateCounter(students);
+    updateChart(students);
+    updateClassFilter();
+    updateDashboardStats(students);
+
+    document.querySelector("#editModalOverlay").classList.remove("active");
+    showToast("Student updated!", "info");
+  };
+
+  // Cancel button
+  document.querySelector("#editCancelBtn").onclick = () => {
+    document.querySelector("#editModalOverlay").classList.remove("active");
+  };
 }
+// ── EXCEL EXPORT ──────────────────────────────
+// ── EXCEL EXPORT ──────────────────────────────
 
+// ── EXCEL EXPORT ──────────────────────────────
+function exportReportToExcel() {
+  const summary = reportGenerator.generateDashboardSummary();
+
+  // Create sheets array
+  const sheets = {
+    'Overview': [
+      ['SYSTEM OVERVIEW'],
+      ['Metric', 'Value'],
+      ['Total Students', summary.students],
+      ['Total Teachers', summary.teachers],
+      ['Total Courses', summary.courses],
+      ['Total Exams', summary.exams],
+      ['Overall Attendance %', summary.overallAttendance],
+      [],
+      ['PAYMENT STATUS'],
+      ['Status', 'Count'],
+      ['Paid', summary.paymentStats.paid],
+      ['Pending', summary.paymentStats.pending],
+    ],
+    'By Class': [
+      ['Class', 'Count'],
+      ...Object.entries(summary.studentsByClass).map(([cls, count]) => [cls, count])
+    ],
+    'By Department': [
+      ['Department', 'Count'],
+      ...Object.entries(summary.teachersByDept).map(([dept, count]) => [dept, count])
+    ],
+    'Courses': [
+      ['Course', 'Count'],
+      ...Object.entries(summary.studentsPerCourse).map(([code, count]) => [code, count])
+    ]
+  };
+
+  // Create workbook
+  const wb = XLSX.utils.book_new();
+
+  // Add sheets
+  Object.keys(sheets).forEach(sheetName => {
+    const ws = XLSX.utils.aoa_to_sheet(sheets[sheetName]);
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  });
+
+  // Download
+  XLSX.writeFile(wb, `School-Report-${new Date().getTime()}.xlsx`);
+  showToast("Report exported as Excel!", "success");
+}
 async function clearAll() {
   const confirmed = await showConfirm("Are you sure you want to delete all?");
   if (!confirmed) return;
@@ -526,6 +655,7 @@ function onAddGrade(studentId, grade) {
   updateDashboardStats(students);  // ← ADD THIS
   updateGradesTable(students, filterStudent, gradesTableBody);  // ← ADD THIS
   updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);  // ← ADD THIS
+  updateAnalytics(students);  // Add this line
 }
 
 // ── CUSTOM CONFIRMATION MODAL ──────────────────────────────
@@ -697,8 +827,12 @@ async function onDeleteAttendance(attendanceId) {
 }
 // ── EVENT LISTENERS ────────────────────────────────────
 // ── EXPORT REPORT ──────────────────────────────
-exportReportBtn.addEventListener("click", exportReportPDF);
-// ── ATTENDANCE STUDENT DROPDOWN ─────────────────────
+// ── EXPORT REPORT ──────────────────────────────
+
+exportReportBtn.addEventListener("click", () => {
+  exportReportToExcel();
+  showToast("Exporting to Excel...", "info");
+});
 attendanceStudent.addEventListener("change", () => {
   if (attendanceStudent.value) {
     renderAttendanceRecords(attendanceStudent.value);
