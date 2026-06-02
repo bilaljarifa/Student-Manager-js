@@ -41,8 +41,8 @@ export function validation(nameInput, emailInput, classInput, students) {
           return false;
      }
 
-     if (nameInput.value.length < 3) {
-          showError(nameInput, "Name must be at least 3 characters!");
+     if (nameInput.value.length < 4) {
+          showError(nameInput, "Name must be at least 4 characters!");
           return false;
      }
 

@@ -2,16 +2,16 @@
 <html lang="en">
 
 <head>
-  <!-- 🔵 META & TITLE -->
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Manager</title>
 
-  <!-- 🎨 STYLES -->
   <link rel="stylesheet" href="style.css">
 
   <!-- 📊 EXTERNAL LIBRARIES -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 </head>
@@ -57,15 +57,50 @@
 
       <!-- SIDEBAR NAVIGATION MENU (9 menu items) -->
       <nav id="sidebar-nav">
-        <a href="#" class="nav-item active" data-section="dashboard">📊 Dashboard</a>
-        <a href="#" class="nav-item" data-section="students">👨‍🎓 Students</a>
-        <a href="#" class="nav-item" data-section="grades">📝 Grades</a>
-        <a href="#" class="nav-item" data-section="teacher">👨‍🏫teacher</a>
-        <a href="#" class="nav-item" data-section="exams">📋 Exams</a>
-        <a href="#" class="nav-item" data-section="attendance">📅 Attendance</a>
-        <a href="#" class="nav-item" data-section="courses">📚 Courses</a>
-        <a href="#" class="nav-item" data-section="reports">📈 Reports</a>
-        <a href="#" class="nav-item" data-section="analytics">📊 Analytics</a>
+        <a href="#" class="nav-item active" data-section="dashboard">
+          <i class="bi bi-grid"></i>
+          Dashboard
+        </a>
+
+        <a href="#" class="nav-item" data-section="students">
+          <i class="bi bi-people"></i>
+          Students
+        </a>
+
+        <a href="#" class="nav-item" data-section="grades">
+          <i class="bi bi-journal-text"></i>
+          Grades
+        </a>
+
+        <a href="#" class="nav-item" data-section="teacher">
+          <i class="bi bi-person-badge"></i>
+          Teachers
+        </a>
+
+        <a href="#" class="nav-item" data-section="exams">
+          <i class="bi bi-clipboard-check"></i>
+          Exams
+        </a>
+
+        <a href="#" class="nav-item" data-section="attendance">
+          <i class="bi bi-calendar-event"></i>
+          Attendance
+        </a>
+
+        <a href="#" class="nav-item" data-section="courses">
+          <i class="bi bi-book"></i>
+          Courses
+        </a>
+
+        <a href="#" class="nav-item" data-section="reports">
+          <i class="bi bi-bar-chart"></i>
+          Reports
+        </a>
+
+        <a href="#" class="nav-item" data-section="analytics">
+          <i class="bi bi-graph-up"></i>
+          Analytics
+        </a>
       </nav>
       <div id="sidebarWelcome">
         <h3 id="welcomeText"></h3>
@@ -139,31 +174,37 @@
         </div>
       </section>
 
-      <!-- ───────────────────────────────────────────────────────────────
-           👨‍🎓 PAGE 2: STUDENTS (CRUD operations)
-           ─────────────────────────────────────────────────────────────── -->
-      <section id="section-students" class="section">
 
-        <!-- SEARCH BAR -->
+      <!-- 👨‍🎓 STUDENTS SECTION -->
+      <section id="section-students" class="section">
+        <h1>Students</h1>
+
+        <!-- SEARCH BAR (centered) -->
         <div id="search-bar">
-          <input type="text" id="search" placeholder="🔍 Search students by name, email, class...">
+          <input type="text" id="search" placeholder="🔍 Search students...">
         </div>
 
-        <!-- TOOLBAR (filters + action buttons) -->
+        <!-- FILTER TOOLBAR -->
         <div id="students-toolbar">
+          <!-- LEFT: Filters -->
           <div class="toolbar-left">
             <select id="classFilter">
               <option value="">All Classes</option>
             </select>
+
             <select id="sortPayment">
               <option value="">Sort by Payment</option>
               <option value="Paid">Paid First</option>
               <option value="Pending">Pending First</option>
             </select>
+
             <button id="sortBtn">Sort by Name</button>
           </div>
+
+          <!-- RIGHT: Actions -->
           <div class="toolbar-right">
-            <button id="clearAllBtn">🗑 Clear All</button>
+            <button id="deleteSelectedBtn" style="display:none;">🗑 Delete Selected</button>
+            <button id="deleteByClassBtn">Delete student by Class</button>
             <button id="exportBtn">⬇ Export CSV</button>
           </div>
         </div>
@@ -177,14 +218,15 @@
             <option value="Paid">Paid</option>
             <option value="Pending">Pending</option>
           </select>
-          <button id="addBtn">Add Student</button>
+          <button id="addBtn">➕ Add Student</button>
         </div>
 
         <!-- STUDENTS TABLE -->
         <table id="studentsTable">
           <thead>
             <tr>
-              <th>#</th>
+              <th><input type="checkbox" id="selectAllStudents"></th>
+              <th>Date</th>
               <th>Name</th>
               <th>Email</th>
               <th>Class</th>
@@ -197,7 +239,7 @@
           <tbody id="students"></tbody>
         </table>
 
-        <!-- PAGINATION CONTROLS -->
+        <!-- PAGINATION -->
         <div id="pagination">
           <button id="prevBtn">← Previous</button>
           <span id="pageInfo">Page 1 of 1</span>
@@ -209,50 +251,68 @@
       <!-- ───────────────────────────────────────────────────────────────
            📝 PAGE 3: GRADES (Add/update student grades)
            ─────────────────────────────────────────────────────────────── -->
+      <!-- GRADES PAGE -->
       <section id="section-grades" class="section">
-        <h1>Grades Management</h1>
-
-        <!-- ADD GRADE FORM -->
-        <div id="addGradeForm">
-          <select id="filterStudent">
-            <option value="">All Students</option>
-          </select>
-          <input type="text" id="gradeSubject" placeholder="Subject (Math, Science, English...)" />
-          <input type="number" id="gradeScore" placeholder="Score (0-100)" min="0" max="100" />
-          <button id="addGradeBtn">Add Grade</button>
+        <div class="section-header">
+          <h1>Grades</h1>
         </div>
 
-        <!-- GRADE STATISTICS CARDS -->
-        <div id="gradesStats">
-          <div class="stat-box">
-            <p>Average Grade</p>
-            <p id="avgGrade">0</p>
+        <!-- ADD FORM -->
+        <div class="compact-form">
+          <div class="form-field">
+            <label>Student</label>
+            <select id="filterStudent">
+              <option value="">All Students</option>
+            </select>
           </div>
-          <div class="stat-box">
-            <p>Highest Grade</p>
-            <p id="highestGrade">0</p>
+          <div class="form-field">
+            <label>Subject</label>
+            <input type="text" id="gradeSubject" placeholder="e.g. Mathematics">
           </div>
-          <div class="stat-box">
-            <p>Lowest Grade</p>
-            <p id="lowestGrade">0</p>
+          <div class="form-field">
+            <label>Score (0-100)</label>
+            <input type="number" id="gradeScore" placeholder="Score" min="0" max="100">
+          </div>
+          <button id="addGradeBtn" class="form-button">Add Grade</button>
+        </div>
+
+        <!-- ← ADD THIS: CLASS + STUDENT FILTERS ← -->
+        <div class="modern-toolbar">
+          <div class="search-input-group" style="flex: 0.5;">
+            <span>📚</span>
+            <select id="classFilterGrades"
+              style="background:none;border:none;outline:none;color:var(--text);width:100%;font-family:'Inter',sans-serif;font-size:13px;">
+              <option value="">All Classes</option>
+            </select>
+          </div>
+          <div class="search-input-group" style="flex: 1;">
+            <span>👤</span>
+            <select id="studentFilterGrades"
+              style="background:none;border:none;outline:none;color:var(--text);width:100%;font-family:'Inter',sans-serif;font-size:13px;">
+              <option value="">All Students</option>
+            </select>
           </div>
         </div>
 
         <!-- GRADES TABLE -->
-        <table id="gradesTable">
-          <thead>
-            <tr>
-              <th>Student Name</th>
-              <th>Subject</th>
-              <th>Score</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="gradesTableBody"></tbody>
-        </table>
+        <div class="modern-table-wrapper">
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>Class</th>
+                <th>Subject</th>
+                <th>Score</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="gradesTableBody">
+              <!-- Populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
       </section>
-
       <!-- ───────────────────────────────────────────────────────────────
            👨‍🏫 PAGE 4: TEACHERS (Admin only - add/edit/delete teachers)
            ─────────────────────────────────────────────────────────────── -->

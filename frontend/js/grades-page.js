@@ -1,136 +1,125 @@
 // ── IMPORTS ────────────────────────────────────────────
-import { getAverage } from "./grades.js"; // import the calculation function
+import { getAverage } from "./grades.js";
 
 // ── GRADES PAGE FUNCTIONS ──────────────────────────────
 
 // FUNCTION 1: renderGradesPage
-// PURPOSE: Fill the student dropdown with all student names
-// CALLED: When page loads, or when a student is added/deleted
+// Fill the student dropdown with all student names
 export function renderGradesPage(students, filterStudentSelector) {
-    // clear the dropdown and add default option
     filterStudentSelector.innerHTML = '<option value="">All Students</option>';
 
-    // loop through every student in the array
     students.forEach((student) => {
-        // create a new <option> element
         const option = document.createElement("option");
-
-        // set the value to the student's ID (so we can identify them later)
         option.value = student.id;
-
-        // set the text that user sees as the student's name
         option.textContent = student.name;
-
-        // add this option to the dropdown
         filterStudentSelector.appendChild(option);
     });
 }
 
 // ──────────────────────────────────────────────────────
 
-// FUNCTION 2: updateGradesTable
-// PURPOSE: Display grades in a table based on selected student
-// CALLED: When page loads, or when user changes the student dropdown
+// FUNCTION 2: updateGradesTable (IMPROVED)
+// Display grades in a professional table
 export function updateGradesTable(students, filterStudentSelector, gradesTableBodySelector) {
-    // clear the table (remove all old rows)
     gradesTableBodySelector.innerHTML = "";
 
-    // get the ID of the student selected in the dropdown
     const selectedStudentId = filterStudentSelector.value;
-
-    // start by assuming we want to show all students
     let filteredStudents = students;
 
-    // if user selected a specific student (not "All Students")
     if (selectedStudentId) {
-        // filter the array to get only that ONE student
         filteredStudents = students.filter(s => s.id === parseInt(selectedStudentId));
     }
-    // if selectedStudentId is empty, filteredStudents stays as all students
 
-    // loop through each student we're displaying
     filteredStudents.forEach((student) => {
-
-        // loop through each grade that student has
         student.grades.forEach((grade, index) => {
-
-            // create a new table row for this grade
             const row = document.createElement("tr");
+            row.style.borderBottom = "1px solid var(--border)";
+            row.style.transition = "var(--transition)";
 
-            // grade is now an object: { subject: "Math", score: 85 }
-            // check if the score passes (>=60) or fails (<60)
-            const status = grade.score >= 60 ? "Pass" : "Fail";
+            // Hover effect
+            row.addEventListener("mouseenter", () => {
+                row.style.backgroundColor = "var(--border-light)";
+            });
+            row.addEventListener("mouseleave", () => {
+                row.style.backgroundColor = "transparent";
+            });
 
-            // fill the row with data
+            // Status: PASS (>=60) or FAIL (<60)
+            const isPass = grade.score >= 60;
+            const statusColor = isPass ? "#10B981" : "#EF4444";
+            const statusText = isPass ? "✅ PASS" : "❌ FAIL";
+
             row.innerHTML = `
-    <td>${student.name}</td>
-    <td>${grade.subject}</td>
-    <td>${grade.score}</td>
-    <td><span class="status ${status.toLowerCase()}">${status}</span></td>
-    <td>
-      <button class="updateGradeBtn" data-student-id="${student.id}" data-subject="${grade.subject}">Update</button>
-      <button class="deleteGradeBtn">Delete</button>
-    </td>
-`;
-
-            // add the row to the table
+                <td style="padding: 14px 16px; color: var(--text-primary);">${student.name}</td>
+                <td style="padding: 14px 16px; color: var(--text-primary);">${grade.subject}</td>
+                <td style="padding: 14px 16px; text-align: center; font-weight: 600; color: var(--primary); font-size: 1.1rem;">${grade.score}</td>
+                <td style="padding: 14px 16px; text-align: center;">
+                    <span style="color: ${statusColor}; font-weight: 600; font-size: 0.9rem;">${statusText}</span>
+                </td>
+                <td style="padding: 14px 16px; text-align: center;">
+                    <button class="updateGradeBtn" data-student-id="${student.id}" data-subject="${grade.subject}" style="padding: 6px 12px; background: rgba(37, 99, 235, 0.08); color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition); margin-right: 6px;">✏️ Update</button>
+                    <button class="deleteGradeBtn" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.08); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition);">🗑️ Delete</button>
+                </td>
+            `;
             gradesTableBodySelector.appendChild(row);
         });
     });
+
+    // Show message if no grades
+    if (gradesTableBodySelector.children.length === 0) {
+        const emptyRow = document.createElement("tr");
+        emptyRow.innerHTML = `
+            <td colspan="5" style="padding: 40px; text-align: center; color: var(--text-secondary);">
+                📝 No grades added yet
+            </td>
+        `;
+        gradesTableBodySelector.appendChild(emptyRow);
+    }
 }
 
 // ──────────────────────────────────────────────────────
 
-// FUNCTION 3: updateGradesStats
-// PURPOSE: Calculate and display average, highest, and lowest grades
-// CALLED: When page loads, or when user changes the student dropdown
-export function updateGradesStats(
-    students,
-    filterStudentSelector,
-    avgGradeSelector,
-    highestGradeSelector,
-    lowestGradeSelector
-) {
-    // get the ID of the selected student
-    const selectedStudentId = filterStudentSelector.value;
-
-    // empty array to collect grade scores
+// FUNCTION 3: getStudentGradeStats (FOR ANALYTICS ONLY)
+// Calculate average, highest, and lowest grades
+// This is NOW used in Analytics, not in Grades page
+export function getStudentGradeStats(students, selectedStudentId) {
     let allGrades = [];
 
-    // if a specific student is selected
     if (selectedStudentId) {
-        // find that ONE student in the array
         const student = students.find(s => s.id === parseInt(selectedStudentId));
-
-        // extract just the SCORES from their grades
-        // grade is { subject: "Math", score: 85 } → we want [85, 90, 78...]
-        allGrades = student.grades.map(g => g.score);
+        if (student) {
+            allGrades = student.grades.map(g => g.score);
+        }
     } else {
-        // if "All Students" is selected, collect scores from EVERYONE
         students.forEach(s => {
-            // loop through each student
             s.grades.forEach(g => {
-                // add each grade's score to the array
                 allGrades.push(g.score);
             });
         });
     }
 
-    // if there are no grades at all, show 0 for everything
     if (allGrades.length === 0) {
-        avgGradeSelector.textContent = "0";
-        highestGradeSelector.textContent = "0";
-        lowestGradeSelector.textContent = "0";
-        return; // stop here, no need to calculate
+        return { average: 0, highest: 0, lowest: 0, total: 0 };
     }
 
-    // calculate average using the getAverage function from grades.js
-    avgGradeSelector.textContent = getAverage(allGrades);
+    return {
+        average: getAverage(allGrades),
+        highest: Math.max(...allGrades),
+        lowest: Math.min(...allGrades),
+        total: allGrades.length
+    };
+}
+// ──────────────────────────────────────────────────────
 
-    // Math.max(...array) finds the highest number
-    // ... spreads the array into individual numbers: max(85, 90, 78) = 90
-    highestGradeSelector.textContent = Math.max(...allGrades);
+// FUNCTION 4: updateGradesStats (NEW)
+// PURPOSE: Update the stats display on the Grades page
+// INPUT: students array, selected student selector, and 3 DOM elements
+export function updateGradesStats(students, filterStudentSelector, avgGradeEl, highestGradeEl, lowestGradeEl) {
+    const selectedStudentId = filterStudentSelector?.value;
+    const stats = getStudentGradeStats(students, selectedStudentId);
 
-    // Math.min(...array) finds the lowest number
-    lowestGradeSelector.textContent = Math.min(...allGrades);
+    // Update DOM elements with the stats
+    if (avgGradeEl) avgGradeEl.textContent = stats.average;
+    if (highestGradeEl) highestGradeEl.textContent = stats.highest;
+    if (lowestGradeEl) lowestGradeEl.textContent = stats.lowest;
 }

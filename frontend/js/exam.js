@@ -1,13 +1,46 @@
 export class Exam {
-    constructor(id, name, subject, date, totalMarks, passingScore, createdBy) {
-        this.id = id;                    // Unique exam ID
-        this.name = name;                // Exam name (Math Final, Physics Quiz, etc.)
-        this.subject = subject;          // Subject (Mathematics, Science, etc.)
-        this.date = date;                // Exam date (YYYY-MM-DD format)
-        this.totalMarks = totalMarks;    // Total marks (100, 50, etc.)
-        this.passingScore = passingScore;// Passing score (40, 50, etc.)
-        this.createdBy = createdBy;      // Teacher ID who created it
-        this.assignedTo = [];            // Array of student IDs assigned to this exam
-        this.results = [];               // Array of exam results { studentId, score }
+    constructor(id, name, subject, date, totalMarks, passingScore, createdBy, type = "FINAL") {
+        this.id = id;
+        this.name = name;
+        this.subject = subject;
+        this.date = date;
+        this.totalMarks = totalMarks;
+        this.passingScore = passingScore;
+        this.createdBy = createdBy;
+        this.type = type;  // "SEMESTER" or "FINAL"
+        this.assignedTo = [];  // Student IDs assigned
+        this.results = [];  // Array of ExamResult objects
+    }
+
+    // Add result for a student
+    addResult(studentId, score) {
+        const existingResult = this.results.find(r => r.studentId === studentId);
+
+        if (existingResult) {
+            // Update existing result
+            existingResult.score = score;
+            existingResult.status = score >= this.passingScore ? "PASS" : "FAIL";
+        } else {
+            // Add new result
+            this.results.push({
+                id: Date.now(),
+                studentId: studentId,
+                score: score,
+                status: score >= this.passingScore ? "PASS" : "FAIL",
+                date: new Date().toLocaleDateString()
+            });
+        }
+    }
+
+    // Get result for specific student
+    getStudentResult(studentId) {
+        return this.results.find(r => r.studentId === studentId);
+    }
+
+    // Get pass rate
+    getPassRate() {
+        if (this.results.length === 0) return 0;
+        const passed = this.results.filter(r => r.status === "PASS").length;
+        return ((passed / this.results.length) * 100).toFixed(1);
     }
 }
