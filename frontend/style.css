@@ -1503,3 +1503,558 @@ textarea.input-error {
     color: var(--danger);
     font-weight: bold;
 }
+/* ═══════════════════════════════════════════════════════════════════
+   MODERN TOOLBAR (for Grades filters)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.modern-toolbar {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: var(--background);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+body.dark .modern-toolbar {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SEARCH INPUT GROUP (icon + input/select together)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 9px 12px;
+    gap: 8px;
+    flex: 1;
+    min-width: 150px;
+    transition: all 0.2s ease;
+}
+
+.search-input-group:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.05);
+}
+
+body.dark .search-input-group {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark .search-input-group:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+.search-input-group span {
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+.search-input-group input,
+.search-input-group select {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    width: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+}
+
+.search-input-group select option {
+    background: var(--card);
+    color: var(--text);
+}
+
+body.dark .search-input-group select option {
+    background: var(--card);
+    color: var(--text);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TYPE BADGE (for class names)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.type-badge {
+    display: inline-block;
+    background: #F3F4F6;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+body.dark .type-badge {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODERN TABLE WRAPPER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.modern-table-wrapper {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+body.dark .modern-table-wrapper {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MODERN TABLE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table thead {
+    background: #F8FAFC;
+    border-bottom: 1px solid var(--border);
+}
+
+body.dark .modern-table thead {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.modern-table th {
+    padding: 14px 16px;
+    text-align: left;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.modern-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.2s ease;
+}
+
+body.dark .modern-table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.modern-table tbody tr:hover {
+    background: var(--background);
+}
+
+body.dark .modern-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.modern-table td {
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 13px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   STATUS BADGE (PASS/FAIL)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-pass {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+}
+
+.status-fail {
+    background: rgba(239, 68, 68, 0.1);
+    color: #EF4444;
+}
+
+body.dark .status-pass {
+    background: rgba(16, 185, 129, 0.15);
+    color: #6EE7B7;
+}
+
+body.dark .status-fail {
+    background: rgba(239, 68, 68, 0.15);
+    color: #FCA5A5;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ACTION BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.action-btn {
+    padding: 6px 12px;
+    border: 1px solid;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: none;
+    margin-right: 6px;
+}
+
+.action-btn:last-child {
+    margin-right: 0;
+}
+
+/* Edit button */
+.action-btn.edit {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.action-btn.edit:hover {
+    background: rgba(37, 99, 235, 0.15);
+    border-color: var(--primary);
+}
+
+body.dark .action-btn.edit {
+    background: rgba(129, 140, 248, 0.1);
+    border-color: rgba(129, 140, 248, 0.2);
+}
+
+body.dark .action-btn.edit:hover {
+    background: rgba(129, 140, 248, 0.2);
+}
+
+/* Delete button */
+.action-btn.delete {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--danger);
+}
+
+body.dark .action-btn.delete {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+body.dark .action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DELETE/UPDATE GRADE BUTTONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+.updateGradeBtn,
+.deleteGradeBtn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid;
+    margin-right: 6px;
+}
+
+.updateGradeBtn {
+    background: rgba(37, 99, 235, 0.08);
+    color: var(--primary);
+    border-color: rgba(37, 99, 235, 0.2);
+}
+
+.updateGradeBtn:hover {
+    background: rgba(37, 99, 235, 0.15);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.deleteGradeBtn {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.deleteGradeBtn:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: var(--danger);
+    transform: translateY(-1px);
+}
+
+body.dark .updateGradeBtn {
+    background: rgba(129, 140, 248, 0.1);
+    border-color: rgba(129, 140, 248, 0.2);
+}
+
+body.dark .updateGradeBtn:hover {
+    background: rgba(129, 140, 248, 0.2);
+}
+
+body.dark .deleteGradeBtn {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+body.dark .deleteGradeBtn:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORM STYLES FOR GRADES SECTION
+   ═══════════════════════════════════════════════════════════════════ */
+
+.compact-form {
+    display: flex;
+    gap: 10px;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+body.dark .compact-form {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 120px;
+}
+
+.form-field label {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.form-field input,
+.form-field select {
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 13px;
+    transition: all 0.2s ease;
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.05);
+}
+
+body.dark .form-field input,
+body.dark .form-field select {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark .form-field input:focus,
+body.dark .form-field select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+.form-button {
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.form-button:hover {
+    background: #4338CA;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.form-button:active {
+    transform: translateY(0);
+}
+
+body.dark .form-button {
+    background: var(--primary);
+}
+
+body.dark .form-button:hover {
+    background: #6366F1;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EMPTY STATE
+   ═══════════════════════════════════════════════════════════════════ */
+
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.empty-state p {
+    margin: 8px 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECTION HEADER
+   ═══════════════════════════════════════════════════════════════════ */
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.section-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+.modern-table-wrapper {
+    animation: fadeIn 0.3s ease;
+}
+
+.modern-toolbar {
+    animation: fadeIn 0.3s ease;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .modern-toolbar {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .search-input-group {
+        flex: 1 1 100%;
+        min-width: 100%;
+    }
+
+    .compact-form {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-field {
+        min-width: 100%;
+    }
+
+    .modern-table {
+        font-size: 12px;
+    }
+
+    .modern-table td,
+    .modern-table th {
+        padding: 10px 12px;
+    }
+
+    .action-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        margin-right: 4px;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .section-header h1 {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modern-table {
+        font-size: 11px;
+    }
+
+    .modern-table td,
+    .modern-table th {
+        padding: 8px 10px;
+    }
+
+    .type-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    .action-btn,
+    .updateGradeBtn,
+    .deleteGradeBtn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+}

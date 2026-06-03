@@ -6,7 +6,17 @@ import { getAverage } from "./grades.js";
 // FUNCTION 1: renderGradesPage
 // Fill the student dropdown with all student names
 export function renderGradesPage(students, filterStudentSelector) {
+    if (!filterStudentSelector) {
+        console.error("❌ ERROR: #studentFilterGrades element not found in HTML!");
+        return;
+    }
+
     filterStudentSelector.innerHTML = '<option value="">All Students</option>';
+
+    if (!students || students.length === 0) {
+        console.warn("⚠️ WARNING: No students found! Add a student first.");
+        return;
+    }
 
     students.forEach((student) => {
         const option = document.createElement("option");
@@ -14,52 +24,59 @@ export function renderGradesPage(students, filterStudentSelector) {
         option.textContent = student.name;
         filterStudentSelector.appendChild(option);
     });
+
+    console.log(`✅ SUCCESS: ${students.length} students loaded into dropdown`);
 }
 
 // ──────────────────────────────────────────────────────
 
-// FUNCTION 2: updateGradesTable (IMPROVED)
+// FUNCTION 2: updateGradesTable (WITH EDIT BUTTON)
 // Display grades in a professional table
-export function updateGradesTable(students, filterStudentSelector, gradesTableBodySelector) {
+export function updateGradesTable(students, classFilterSelector, studentFilterSelector, gradesTableBodySelector) {
     gradesTableBodySelector.innerHTML = "";
 
-    const selectedStudentId = filterStudentSelector.value;
+    const selectedClass = classFilterSelector?.value || "";
+    const selectedStudentId = studentFilterSelector?.value || "";
+
     let filteredStudents = students;
 
+    // Filter by class
+    if (selectedClass) {
+        filteredStudents = filteredStudents.filter(s => s.studentClass === selectedClass);
+    }
+
+    // Filter by student
     if (selectedStudentId) {
-        filteredStudents = students.filter(s => s.id === parseInt(selectedStudentId));
+        filteredStudents = filteredStudents.filter(s => s.id === parseInt(selectedStudentId));
     }
 
     filteredStudents.forEach((student) => {
-        student.grades.forEach((grade, index) => {
+        student.grades.forEach((grade, gradeIndex) => {
             const row = document.createElement("tr");
             row.style.borderBottom = "1px solid var(--border)";
             row.style.transition = "var(--transition)";
+            row.dataset.studentId = student.id;
+            row.dataset.gradeIndex = gradeIndex;
 
             // Hover effect
             row.addEventListener("mouseenter", () => {
-                row.style.backgroundColor = "var(--border-light)";
+                row.style.backgroundColor = "var(--background)";
             });
             row.addEventListener("mouseleave", () => {
                 row.style.backgroundColor = "transparent";
             });
 
-            // Status: PASS (>=60) or FAIL (<60)
-            const isPass = grade.score >= 60;
-            const statusColor = isPass ? "#10B981" : "#EF4444";
-            const statusText = isPass ? "✅ PASS" : "❌ FAIL";
-
             row.innerHTML = `
-                <td style="padding: 14px 16px; color: var(--text-primary);">${student.name}</td>
-                <td style="padding: 14px 16px; color: var(--text-primary);">${grade.subject}</td>
+                <td style="padding: 14px 16px; color: var(--text);">${student.name}</td>
+                <td style="padding: 14px 16px;">
+                    <span class="type-badge">${student.studentClass}</span>
+                </td>
+                <td style="padding: 14px 16px; color: var(--text);">${grade.subject}</td>
                 <td style="padding: 14px 16px; text-align: center; font-weight: 600; color: var(--primary); font-size: 1.1rem;">${grade.score}</td>
-                <td style="padding: 14px 16px; text-align: center;">
-                    <span style="color: ${statusColor}; font-weight: 600; font-size: 0.9rem;">${statusText}</span>
-                </td>
-                <td style="padding: 14px 16px; text-align: center;">
-                    <button class="updateGradeBtn" data-student-id="${student.id}" data-subject="${grade.subject}" style="padding: 6px 12px; background: rgba(37, 99, 235, 0.08); color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition); margin-right: 6px;">✏️ Update</button>
-                    <button class="deleteGradeBtn" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.08); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition);">🗑️ Delete</button>
-                </td>
+               <td style="padding: 14px 16px; text-align: center;">
+        <button class="editGradeBtn" data-student-id="${student.id}" data-grade-index="${gradeIndex}" data-student-name="${student.name}" data-subject="${grade.subject}" data-score="${grade.score}" style="padding: 6px 12px; background: rgba(37, 99, 235, 0.08); color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition);">✏️ Edit</button>
+    <button class="deleteGradeBtn" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.08); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: var(--transition);">🗑️ Delete</button>
+</td>
             `;
             gradesTableBodySelector.appendChild(row);
         });
@@ -69,8 +86,8 @@ export function updateGradesTable(students, filterStudentSelector, gradesTableBo
     if (gradesTableBodySelector.children.length === 0) {
         const emptyRow = document.createElement("tr");
         emptyRow.innerHTML = `
-            <td colspan="5" style="padding: 40px; text-align: center; color: var(--text-secondary);">
-                📝 No grades added yet
+            <td colspan="5" style="padding: 40px; text-align: center; color: var(--text-muted);">
+                📝 No grades found
             </td>
         `;
         gradesTableBodySelector.appendChild(emptyRow);
@@ -79,9 +96,8 @@ export function updateGradesTable(students, filterStudentSelector, gradesTableBo
 
 // ──────────────────────────────────────────────────────
 
-// FUNCTION 3: getStudentGradeStats (FOR ANALYTICS ONLY)
+// FUNCTION 3: getStudentGradeStats
 // Calculate average, highest, and lowest grades
-// This is NOW used in Analytics, not in Grades page
 export function getStudentGradeStats(students, selectedStudentId) {
     let allGrades = [];
 
@@ -109,11 +125,11 @@ export function getStudentGradeStats(students, selectedStudentId) {
         total: allGrades.length
     };
 }
+
 // ──────────────────────────────────────────────────────
 
-// FUNCTION 4: updateGradesStats (NEW)
-// PURPOSE: Update the stats display on the Grades page
-// INPUT: students array, selected student selector, and 3 DOM elements
+// FUNCTION 4: updateGradesStats
+// Update the stats display on the Grades page
 export function updateGradesStats(students, filterStudentSelector, avgGradeEl, highestGradeEl, lowestGradeEl) {
     const selectedStudentId = filterStudentSelector?.value;
     const stats = getStudentGradeStats(students, selectedStudentId);

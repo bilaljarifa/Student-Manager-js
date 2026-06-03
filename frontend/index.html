@@ -249,34 +249,26 @@
       </section>
 
       <!-- ───────────────────────────────────────────────────────────────
-           📝 PAGE 3: GRADES (Add/update student grades)
-           ─────────────────────────────────────────────────────────────── -->
-      <!-- GRADES PAGE -->
+          <!-- GRADES PAGE -->
       <section id="section-grades" class="section">
         <div class="section-header">
           <h1>Grades</h1>
         </div>
 
-        <!-- ADD FORM -->
+        <!-- ADD GRADE FORM -->
         <div class="compact-form">
-          <div class="form-field">
-            <label>Student</label>
-            <select id="filterStudent">
-              <option value="">All Students</option>
-            </select>
-          </div>
           <div class="form-field">
             <label>Subject</label>
             <input type="text" id="gradeSubject" placeholder="e.g. Mathematics">
           </div>
           <div class="form-field">
-            <label>Score (0-100)</label>
+            <label>Score (0-20)</label>
             <input type="number" id="gradeScore" placeholder="Score" min="0" max="100">
           </div>
-          <button id="addGradeBtn" class="form-button">Add Grade</button>
+          <button id="addGradeBtn" class="form-button">➕ Add Grade</button>
         </div>
 
-        <!-- ← ADD THIS: CLASS + STUDENT FILTERS ← -->
+        <!-- CLASS + STUDENT FILTERS -->
         <div class="modern-toolbar">
           <div class="search-input-group" style="flex: 0.5;">
             <span>📚</span>
@@ -303,8 +295,7 @@
                 <th>Class</th>
                 <th>Subject</th>
                 <th>Score</th>
-                <th>Status</th>
-                <th>Actions</th>
+                <th>Actions</th> <!-- ← ADD THIS LINE -->
               </tr>
             </thead>
             <tbody id="gradesTableBody">
@@ -318,7 +309,6 @@
            ─────────────────────────────────────────────────────────────── -->
       <section id="section-teacher" class="section">
         <h1>Teachers</h1>
-
         <!-- ADD/EDIT TEACHER FORM -->
         <div id="form-container">
           <input type="text" id="teacherName" placeholder="Teacher Name">
@@ -568,5 +558,34 @@
   <script type="module" src="./js/app.js"></script>
 
 </body>
+<!-- EDIT GRADE MODAL -->
+<div id="editGradeModalOverlay" class="confirm-overlay">
+  <div class="confirm-modal" style="text-align:left; width:460px;">
+    <h3>✏️ Edit Grade</h3>
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div>
+        <label
+          style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Student</label>
+        <input type="text" id="editGradeStudent" class="edit-input" placeholder="Student Name" readonly
+          style="background:var(--background); cursor:not-allowed;">
+      </div>
+      <div>
+        <label
+          style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Subject</label>
+        <input type="text" id="editGradeSubject" class="edit-input" placeholder="Subject" readonly
+          style="background:var(--background); cursor:not-allowed;">
+      </div>
+      <div>
+        <label style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Score
+          (0-100)</label>
+        <input type="number" id="editGradeScore" class="edit-input" placeholder="Enter new score" min="0" max="100">
+      </div>
+    </div>
+    <div class="confirm-buttons" style="margin-top:24px;">
+      <button id="editGradeCancelBtn" class="confirm-cancel">Cancel</button>
+      <button id="editGradeSaveBtn" class="confirm-ok">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
 
 </html>
