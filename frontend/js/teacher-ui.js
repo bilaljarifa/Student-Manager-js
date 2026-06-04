@@ -1,7 +1,6 @@
 // teacher-ui.js
 
 import { getAverage, getStatus } from "./grades.js";
-// teacher-ui.js
 
 export function renderTeachers(teachersContainer, teachers, onDelete, onEdit) {
     teachersContainer.innerHTML = "";
@@ -9,7 +8,7 @@ export function renderTeachers(teachersContainer, teachers, onDelete, onEdit) {
     if (teachers.length === 0) {
         teachersContainer.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align: center; padding: 20px; color: #64748B;">
+                <td colspan="8" style="text-align: center; padding: 20px; color: #64748B;">
                     📭 No teachers found
                 </td>
             </tr>
@@ -26,6 +25,7 @@ export function renderTeachers(teachersContainer, teachers, onDelete, onEdit) {
             <td>${teacher.name}</td>
             <td>${teacher.email}</td>
             <td>${teacher.department || "-"}</td>
+            <td>${teacher.classes ? teacher.classes.join(", ") : "-"}</td>
             <td>${teacher.contractStatus || "-"}</td>
             <td>${teacher.courseWorkload || 0} classes</td>
             <td>

@@ -77,6 +77,7 @@ const teacherName = document.querySelector("#teacherName");
 const teacherEmail = document.querySelector("#teacherEmail");
 const teacherUsername = document.querySelector("#teacherUsername");
 const teacherPassword = document.querySelector("#teacherPassword");
+const teacherClasses = document.querySelector("#teacherClasses");  // ← NEW
 const teacherDepartment = document.querySelector("#teacherDepartment");
 const teacherContractStatus = document.querySelector("#teacherContractStatus");
 const teacherCourseWorkload = document.querySelector("#teacherCourseWorkload");
@@ -386,17 +387,41 @@ function onEditTeacher(teacher) {
     return;
   }
 
-  teacherName.value = teacher.name;
-  teacherEmail.value = teacher.email;
-  teacherUsername.value = teacher.username;
-  teacherPassword.value = teacher.password;
-  teacherDepartment.value = teacher.department || "";
-  teacherContractStatus.value = teacher.contractStatus || "Permanent";
-  teacherCourseWorkload.value = teacher.courseWorkload || 0;
+  // Fill modal inputs
+  document.querySelector("#editTeacherName").value = teacher.name;
+  document.querySelector("#editTeacherEmail").value = teacher.email;
+  document.querySelector("#editTeacherUsername").value = teacher.username;
+  document.querySelector("#editTeacherPassword").value = teacher.password;
+  document.querySelector("#editTeacherClasses").value = teacher.classes ? teacher.classes.join(", ") : "";
+  document.querySelector("#editTeacherDepartment").value = teacher.department || "";
+  document.querySelector("#editTeacherContractStatus").value = teacher.contractStatus || "Permanent";
+  document.querySelector("#editTeacherCourseWorkload").value = teacher.courseWorkload || 0;
 
-  editingTeacherId = teacher.id;
-  addTeacherBtn.textContent = "Update Teacher";
-  showToast("Editing teacher...", "info");
+  // Show modal
+  document.querySelector("#editTeacherModalOverlay").classList.add("active");
+
+  // Save button
+  document.querySelector("#editTeacherSaveBtn").onclick = () => {
+    teacher.name = document.querySelector("#editTeacherName").value.trim();
+    teacher.email = document.querySelector("#editTeacherEmail").value.trim();
+    teacher.username = document.querySelector("#editTeacherUsername").value.trim();
+    teacher.password = document.querySelector("#editTeacherPassword").value.trim();
+    teacher.classes = document.querySelector("#editTeacherClasses").value.trim().split(",").map(c => c.trim()).filter(c => c);
+    teacher.department = document.querySelector("#editTeacherDepartment").value;
+    teacher.contractStatus = document.querySelector("#editTeacherContractStatus").value;
+    teacher.courseWorkload = parseInt(document.querySelector("#editTeacherCourseWorkload").value) || 0;
+
+    saveTeachers(teachers);
+    renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
+    
+    document.querySelector("#editTeacherModalOverlay").classList.remove("active");
+    showToast("Teacher updated!", "info");
+  };
+
+  // Cancel button
+  document.querySelector("#editTeacherCancelBtn").onclick = () => {
+    document.querySelector("#editTeacherModalOverlay").classList.remove("active");
+  };
 }
 
 async function onDeleteTeacher(teacherId) {
@@ -972,6 +997,7 @@ addTeacherBtn.addEventListener("click", () => {
   const email = teacherEmail.value.trim();
   const username = teacherUsername.value.trim();
   const password = teacherPassword.value.trim();
+  const classes = teacherClasses.value.trim().split(",").map(c => c.trim()).filter(c => c);  // ← NEW
   const department = teacherDepartment.value.trim();
   const contractStatus = teacherContractStatus.value;
   const courseWorkload = parseInt(teacherCourseWorkload.value) || 0;
@@ -981,15 +1007,18 @@ addTeacherBtn.addEventListener("click", () => {
   }
 
   if (editingTeacherId === null) {
-    const teacher = new Teacher(Date.now(), name, email, username, password, department, contractStatus, courseWorkload);
+    // New teacher
+    const teacher = new Teacher(Date.now(), name, email, username, password, department, contractStatus, courseWorkload, classes);
     teachers.push(teacher);
     showToast("Teacher added successfully!", "success");
   } else {
+    // Update existing
     const t = teachers.find(t => t.id === editingTeacherId);
     t.name = name;
     t.email = email;
     t.username = username;
-    t.password = password;
+    t.password = password;  // ← CAN CHANGE PASSWORD
+    t.classes = classes;  // ← NEW
     t.department = department;
     t.contractStatus = contractStatus;
     t.courseWorkload = courseWorkload;
@@ -1002,10 +1031,12 @@ addTeacherBtn.addEventListener("click", () => {
   renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
   updateCourseTeacherDropdown();
 
+  // Clear form
   teacherName.value = "";
   teacherEmail.value = "";
   teacherUsername.value = "";
   teacherPassword.value = "";
+  teacherClasses.value = "";  // ← NEW
   teacherDepartment.value = "";
   teacherContractStatus.value = "Permanent";
   teacherCourseWorkload.value = "";
@@ -1322,8 +1353,10 @@ document.addEventListener("click", (e) => {
 document.querySelector("#editGradeSaveBtn").addEventListener("click", () => {
   const { studentId, gradeIndex } = editingGradeInfo;
   const newScore = parseInt(document.querySelector("#editGradeScore").value);
+  const newSubject = document.querySelector("#editGradeSubject").value.trim();
 
   // Validation
+  if (!newSubject) { showToast("Subject cannot be empty!", "error"); return; }
   if (isNaN(newScore) || newScore < 0 || newScore > 100) {
     showToast("Score must be between 0-100!", "error");
     return;
@@ -1336,8 +1369,11 @@ document.querySelector("#editGradeSaveBtn").addEventListener("click", () => {
     return;
   }
 
-  // Update score
+  // Update both subject and score
+  const oldSubject = student.grades[gradeIndex].subject;
   const oldScore = student.grades[gradeIndex].score;
+
+  student.grades[gradeIndex].subject = newSubject;
   student.grades[gradeIndex].score = newScore;
 
   // Save to localStorage
@@ -1352,9 +1388,8 @@ document.querySelector("#editGradeSaveBtn").addEventListener("click", () => {
   document.querySelector("#editGradeModalOverlay").classList.remove("active");
 
   // Show success message
-  showToast(`Grade updated: ${oldScore} → ${newScore}`, "success");
+  showToast(`Grade updated: ${oldSubject} (${oldScore}) → ${newSubject} (${newScore})`, "success");
 });
-
 // ── Cancel edit ──
 document.querySelector("#editGradeCancelBtn").addEventListener("click", () => {
   document.querySelector("#editGradeModalOverlay").classList.remove("active");

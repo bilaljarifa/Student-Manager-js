@@ -1503,6 +1503,7 @@ textarea.input-error {
     color: var(--danger);
     font-weight: bold;
 }
+
 /* ═══════════════════════════════════════════════════════════════════
    MODERN TOOLBAR (for Grades filters)
    ═══════════════════════════════════════════════════════════════════ */
@@ -1668,38 +1669,7 @@ body.dark .modern-table tbody tr:hover {
     font-size: 13px;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   STATUS BADGE (PASS/FAIL)
-   ═══════════════════════════════════════════════════════════════════ */
 
-.status-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.status-pass {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10B981;
-}
-
-.status-fail {
-    background: rgba(239, 68, 68, 0.1);
-    color: #EF4444;
-}
-
-body.dark .status-pass {
-    background: rgba(16, 185, 129, 0.15);
-    color: #6EE7B7;
-}
-
-body.dark .status-fail {
-    background: rgba(239, 68, 68, 0.15);
-    color: #FCA5A5;
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    ACTION BUTTONS
@@ -1824,44 +1794,48 @@ body.dark .deleteGradeBtn:hover {
 /* ═══════════════════════════════════════════════════════════════════
    FORM STYLES FOR GRADES SECTION
    ═══════════════════════════════════════════════════════════════════ */
-
-.compact-form {
-    display: flex;
-    gap: 10px;
-    padding: 16px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-}
-
-body.dark .compact-form {
-    background: rgba(30, 41, 59, 0.5);
-    border-color: rgba(255, 255, 255, 0.08);
-}
+/* ═══════════════════════════════════════════════════════════════════
+   COMPACT FORM — for adding grades
+   ═══════════════════════════════════════════════════════════════════ */
 
 .form-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+}
+
+.form-field:first-child {
+    flex: 3;
+}
+
+.form-field:nth-child(2) {
     flex: 1;
-    min-width: 120px;
+    max-width: 180px;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 140px;
 }
 
 .form-field label {
     color: var(--text);
-    font-size: 12px;
-    font-weight: 600;
+    font-size: 11px;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
 }
 
 .form-field input,
 .form-field select {
-    padding: 10px;
-    border: 1px solid var(--border);
+    padding: 11px 13px;
+    border: 1.5px solid var(--border);
     border-radius: 6px;
     background: var(--background);
     color: var(--text);
@@ -1870,27 +1844,47 @@ body.dark .compact-form {
     transition: all 0.2s ease;
 }
 
+.form-field input::placeholder {
+    color: var(--text-muted);
+}
+
+.form-field input:hover,
+.form-field select:hover {
+    border-color: var(--primary);
+    background: var(--card);
+}
+
 .form-field input:focus,
 .form-field select:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.05);
+    background: var(--card);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
 }
 
 body.dark .form-field input,
 body.dark .form-field select {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark .form-field input:hover,
+body.dark .form-field select:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--primary);
 }
 
 body.dark .form-field input:focus,
 body.dark .form-field select:focus {
+    background: rgba(255, 255, 255, 0.06);
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.12);
 }
 
+/* ─────────────────────────────────────────────────────────────── */
+
 .form-button {
-    padding: 10px 20px;
+    padding: 11px 24px;
     background: var(--primary);
     color: white;
     border: none;
@@ -1900,16 +1894,23 @@ body.dark .form-field select:focus {
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    height: fit-content;
 }
 
 .form-button:hover {
     background: #4338CA;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
 }
 
 .form-button:active {
     transform: translateY(0);
+}
+
+.form-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }
 
 body.dark .form-button {
@@ -1918,6 +1919,53 @@ body.dark .form-button {
 
 body.dark .form-button:hover {
     background: #6366F1;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .compact-form {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-field {
+        min-width: 100%;
+        flex: 1 1 100%;
+    }
+
+    .form-button {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .compact-form {
+        padding: 14px;
+        gap: 8px;
+    }
+
+    .form-field {
+        gap: 4px;
+    }
+
+    .form-field label {
+        font-size: 10px;
+    }
+
+    .form-field input,
+    .form-field select {
+        padding: 10px 12px;
+        font-size: 12px;
+    }
+
+    .form-button {
+        padding: 10px 18px;
+        font-size: 12px;
+    }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1961,6 +2009,7 @@ body.dark .form-button:hover {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -1972,6 +2021,7 @@ body.dark .form-button:hover {
         opacity: 1;
         transform: translateY(0);
     }
+
     to {
         opacity: 0;
         transform: translateY(-10px);
@@ -2056,5 +2106,447 @@ body.dark .form-button:hover {
     .deleteGradeBtn {
         padding: 4px 8px;
         font-size: 10px;
+    }
+}
+/* ═══════════════════════════════════════════════════════════════════
+   GRADES SECTION STYLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+.section-header {
+    margin-bottom: 24px;
+}
+
+.section-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* COMPACT FORM (Add Grade) */
+/* ─────────────────────────────────────────────────────────────── */
+
+.compact-form {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 140px;
+}
+
+.form-field label {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.form-field input,
+.form-field select {
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--background);
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.form-field input::placeholder {
+    color: var(--text-secondary);
+}
+
+.form-field input:hover,
+.form-field select:hover {
+    border-color: var(--primary);
+    background: var(--card);
+}
+
+.form-field input:focus,
+.form-field select:focus {
+    border-color: var(--primary);
+    background: var(--card);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-button {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, var(--primary), #7C3AED);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    height: fit-content;
+}
+
+.form-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.form-button:active {
+    transform: translateY(0);
+}
+
+/* Dark mode form */
+body.dark .form-field input,
+body.dark .form-field select {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+body.dark .form-field input:hover,
+body.dark .form-field select:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--primary);
+}
+
+body.dark .form-field input:focus,
+body.dark .form-field select:focus {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* MODERN TOOLBAR (Filters) */
+/* ─────────────────────────────────────────────────────────────── */
+
+.modern-toolbar {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: var(--background);
+    border-radius: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-input-group {
+    display: flex;
+    align-items: center;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    gap: 8px;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 150px;
+}
+
+.search-input-group:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+}
+
+.search-input-group:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.search-input-group span {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.search-input-group select {
+    flex: 1;
+    background: none !important;
+    border: none !important;
+    outline: none !important;
+    color: var(--text) !important;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    appearance: none;
+}
+
+.search-input-group select option {
+    background: var(--card);
+    color: var(--text);
+}
+
+/* Dark mode toolbar */
+body.dark .search-input-group {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+body.dark .search-input-group:hover {
+    border-color: var(--primary);
+}
+
+body.dark .search-input-group:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* MODERN TABLE WRAPPER */
+/* ─────────────────────────────────────────────────────────────── */
+
+.modern-table-wrapper {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    animation: fadeIn 0.3s ease;
+}
+
+.modern-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.modern-table thead {
+    background: #F3F4F6;
+    border-bottom: 1px solid var(--border);
+}
+
+body.dark .modern-table thead {
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+.modern-table th {
+    padding: 14px 16px;
+    text-align: left;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.modern-table tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background-color 0.2s ease;
+}
+
+body.dark .modern-table tbody tr {
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+.modern-table tbody tr:hover {
+    background: #F9FAFB;
+}
+
+body.dark .modern-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.modern-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.modern-table td {
+    padding: 14px 16px;
+    color: var(--text);
+    font-size: 0.9rem;
+}
+
+/* Score column */
+.modern-table td:nth-child(4) {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.05rem;
+}
+
+/* Actions column */
+.modern-table td:nth-child(5) {
+    text-align: right;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* ACTION BUTTONS IN TABLE */
+/* ─────────────────────────────────────────────────────────────── */
+
+.updateGradeBtn,
+.deleteGradeBtn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid;
+    margin-right: 6px;
+    background: none;
+}
+
+.updateGradeBtn {
+    background: rgba(79, 70, 229, 0.08) !important;
+    color: var(--primary) !important;
+    border-color: rgba(79, 70, 229, 0.2) !important;
+}
+
+.updateGradeBtn:hover {
+    background: var(--primary) !important;
+    color: white !important;
+    border-color: var(--primary) !important;
+    transform: translateY(-1px);
+}
+
+.deleteGradeBtn {
+    background: rgba(239, 68, 68, 0.08) !important;
+    color: var(--danger) !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.deleteGradeBtn:hover {
+    background: var(--danger) !important;
+    color: white !important;
+    border-color: var(--danger) !important;
+    transform: translateY(-1px);
+}
+
+/* Dark mode buttons */
+body.dark .updateGradeBtn {
+    background: rgba(129, 140, 248, 0.1) !important;
+    border-color: rgba(129, 140, 248, 0.2) !important;
+}
+
+body.dark .deleteGradeBtn {
+    background: rgba(239, 68, 68, 0.1) !important;
+    border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* EMPTY STATE */
+/* ─────────────────────────────────────────────────────────────── */
+
+.modern-table tbody tr td[colspan] {
+    padding: 40px 16px;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* ANIMATIONS */
+/* ─────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────── */
+/* RESPONSIVE */
+/* ─────────────────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .compact-form {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .form-field {
+        min-width: 100%;
+        width: 100%;
+    }
+
+    .form-button {
+        width: 100%;
+    }
+
+    .modern-toolbar {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .search-input-group {
+        width: 100%;
+        min-width: auto;
+    }
+
+    .modern-table {
+        font-size: 0.85rem;
+    }
+
+    .modern-table th,
+    .modern-table td {
+        padding: 10px 12px;
+    }
+
+    .updateGradeBtn,
+    .deleteGradeBtn {
+        padding: 4px 8px;
+        font-size: 0.7rem;
+        margin-right: 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-header h1 {
+        font-size: 1.3rem;
+    }
+
+    .compact-form {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .form-field {
+        gap: 4px;
+    }
+
+    .form-field label {
+        font-size: 0.7rem;
+    }
+
+    .form-field input {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+
+    .form-button {
+        padding: 8px 16px;
+        font-size: 0.8rem;
+    }
+
+    .modern-table {
+        font-size: 0.8rem;
+    }
+
+    .modern-table th,
+    .modern-table td {
+        padding: 8px 10px;
+    }
+
+    .updateGradeBtn,
+    .deleteGradeBtn {
+        padding: 3px 6px;
+        font-size: 0.65rem;
     }
 }
