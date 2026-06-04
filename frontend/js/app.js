@@ -91,7 +91,8 @@ const examDate = document.querySelector("#examDate");
 const examTotalMarks = document.querySelector("#examTotalMarks");
 const addExamBtn = document.querySelector("#addExamBtn");
 const examsContainer = document.querySelector("#exams");
-
+const examClass = document.querySelector("#examClass");
+const examTime = document.querySelector("#examTime");
 // ── Attendance Page ──
 const attendanceStudent = document.querySelector("#attendanceStudent");
 const attendanceDate = document.querySelector("#attendanceDate");
@@ -413,7 +414,7 @@ function onEditTeacher(teacher) {
 
     saveTeachers(teachers);
     renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
-    
+
     document.querySelector("#editTeacherModalOverlay").classList.remove("active");
     showToast("Teacher updated!", "info");
   };
@@ -446,14 +447,34 @@ async function onDeleteTeacher(teacherId) {
 // ═══════════════════════════════════════════════════════════════════
 
 function onEditExam(exam) {
-  examName.value = exam.name;
-  examSubject.value = exam.subject;
-  examDate.value = exam.date;
-  examTotalMarks.value = exam.totalMarks;
+  if (!isAdmin()) {
+    showToast("Only admins can edit exams!", "error");
+    return;
+  }
+  document.querySelector("#editExamName").value = exam.name || "";
+  document.querySelector("#editExamSubject").value = exam.subject || "";
+  document.querySelector("#editExamClass").value = exam.class || "";
+  document.querySelector("#editExamDate").value = exam.date || "";
+  document.querySelector("#editExamTotalMarks").value = exam.totalMarks || 0;
 
-  editingExamId = exam.id;
-  addExamBtn.textContent = "Update Exam";
-  showToast("Editing exam...", "info");
+  document.querySelector("#editExamModalOverlay").classList.add("active");
+
+  document.querySelector("#editExamSaveBtn").onclick = () => {
+    exam.name = document.querySelector("#editExamName").value.trim();
+    exam.subject = document.querySelector("#editExamSubject").value.trim();
+    exam.class = document.querySelector("#editExamClass").value.trim();
+    exam.date = document.querySelector("#editExamDate").value;
+    exam.totalMarks = parseInt(document.querySelector("#editExamTotalMarks").value) || 0;
+    saveExams(exams);
+    renderExams(examsContainer, exams, onDeleteExam, onEditExam);
+
+    document.querySelector("#editExamModalOverlay").classList.remove("active");
+    showToast("Exam updated!", "info");
+  };
+
+  document.querySelector("#editExamCancelBtn").onclick = () => {
+    document.querySelector("#editExamModalOverlay").classList.remove("active");
+  };
 }
 
 async function onDeleteExam(examId) {
@@ -1059,26 +1080,39 @@ filterStudent.addEventListener("change", () => {
 addExamBtn.addEventListener("click", () => {
   const name = examName.value.trim();
   const subject = examSubject.value.trim();
+  const examClassValue = examClass.value.trim();
   const date = examDate.value;
+  const time = examTime.value;  // ← CAPTURE TIME
   const totalMarks = Number(examTotalMarks.value);
 
-  if (!name || !subject || !date || isNaN(totalMarks) || totalMarks <= 0) {
-    showToast("Please fill all fields correctly!", "error"); return;
+  if (!name || !subject || !examClassValue || !date || !time || isNaN(totalMarks) || totalMarks <= 0) {
+    showToast("Please fill all fields correctly!", "error");
+    return;
   }
 
   if (editingExamId === null) {
+    // NEW EXAM
     const exam = new Exam(
-      Date.now(), name, subject, date, totalMarks,
+      Date.now(),
+      name,
+      subject,
+      examClassValue,
+      date,
+      totalMarks,
       Math.floor(totalMarks * 0.4),
+      time,  // ← ADD TIME HERE
       localStorage.getItem("username")
     );
     exams.push(exam);
     showToast("Exam added successfully!", "success");
   } else {
+    // UPDATE EXAM
     const e = exams.find(e => e.id === editingExamId);
     e.name = name;
     e.subject = subject;
+    e.class = examClassValue;
     e.date = date;
+    e.time = time;  // ← ADD TIME HERE
     e.totalMarks = totalMarks;
     e.passingScore = Math.floor(totalMarks * 0.4);
     editingExamId = null;
@@ -1089,12 +1123,14 @@ addExamBtn.addEventListener("click", () => {
   saveExams(exams);
   renderExams(examsContainer, exams, onDeleteExam, onEditExam);
 
+  // CLEAR FORM
   examName.value = "";
   examSubject.value = "";
+  examClass.value = "";
   examDate.value = "";
+  examTime.value = "";  // ← CLEAR TIME
   examTotalMarks.value = "";
 });
-
 // ── Add Attendance ──
 addAttendanceBtn.addEventListener("click", () => {
   const studentId = attendanceStudent.value;

@@ -1,17 +1,18 @@
 export class Exam {
-    constructor(id, name, subject, date, totalMarks, passingScore, createdBy, type = "FINAL") {
+    constructor(id, name, subject, examClass, date, totalMarks, passingScore, time, createdBy, type = "FINAL") {
         this.id = id;
         this.name = name;
         this.subject = subject;
+        this.class = examClass;
         this.date = date;
         this.totalMarks = totalMarks;
         this.passingScore = passingScore;
+        this.time = time;  // ← NOW IN CORRECT POSITION
         this.createdBy = createdBy;
-        this.type = type;  // "SEMESTER" or "FINAL"
-        this.assignedTo = [];  // Student IDs assigned
-        this.results = [];  // Array of ExamResult objects
+        this.type = type;
+        this.assignedTo = [];
+        this.results = [];
     }
-
     // Add result for a student
     addResult(studentId, score) {
         const existingResult = this.results.find(r => r.studentId === studentId);

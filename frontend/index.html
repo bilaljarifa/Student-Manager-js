@@ -366,23 +366,27 @@
         <div id="form-container">
           <input type="text" id="examName" placeholder="Exam Name">
           <input type="text" id="examSubject" placeholder="Subject">
+          <input type="text" id="examClass" placeholder="Class">
           <input type="date" id="examDate" />
+          <input type="time" id="examTime" placeholder="Exam Time" />
           <input type="number" id="examTotalMarks" placeholder="Total Marks" />
           <button id="addExamBtn">Add Exam</button>
         </div>
-
         <!-- EXAMS TABLE -->
         <table id="examsTable">
           <thead>
-            <tr>
-              <th>#</th>
-              <th>Exam Name</th>
-              <th>Subject</th>
-              <th>Date</th>
-              <th>Total Marks</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+
+              <tr>
+                <th>#</th>
+                <th>Exam Name</th>
+                <th>Subject</th>
+                <th>Class</th>
+                <th>Date</th>
+                <th>Total Marks</th>
+                <th>Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
           <tbody id="exams"></tbody>
         </table>
       </section>
@@ -423,13 +427,6 @@
           <tbody id="attendance"></tbody>
         </table>
 
-        <!-- ATTENDANCE STATISTICS -->
-        <div id="attendanceStats">
-          <div class="stat-box">
-            <p>Overall Attendance %</p>
-            <p id="overallAttendance">0%</p>
-          </div>
-        </div>
       </section>
 
       <!-- ───────────────────────────────────────────────────────────────
@@ -645,6 +642,25 @@
     <div class="confirm-buttons" style="margin-top:24px;">
       <button id="editTeacherCancelBtn" class="confirm-cancel">Cancel</button>
       <button id="editTeacherSaveBtn" class="confirm-ok">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+<!-- EDIT EXAM MODAL -->
+<div id="editExamModalOverlay" class="confirm-overlay">
+  <div class="confirm-modal" style="text-align:left; width:460px;">
+    <h3 style="margin-bottom:20px;">Edit Exam</h3>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <input type="text" id="editExamName" class="edit-input" placeholder="Exam Name">
+      <input type="text" id="editExamSubject" class="edit-input" placeholder="Subject">
+      <input type="text" id="editExamClass" class="edit-input" placeholder="Class">
+      <input type="date" id="editExamDate" class="edit-input">
+      <input type="number" id="editExamTotalMarks" class="edit-input" placeholder="Total Marks" min="0">
+    </div>
+
+    <div class="confirm-buttons" style="margin-top:24px;">
+      <button id="editExamCancelBtn" class="confirm-cancel">Cancel</button>
+      <button id="editExamSaveBtn" class="confirm-ok">Save Changes</button>
     </div>
   </div>
 </div>
