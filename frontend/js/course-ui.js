@@ -25,10 +25,13 @@ export function renderCourses(container, courses, teachers, onDelete, onEdit) {
       <td><span class="student-count">${course.getStudentCount()}</span></td>
       <td>${teacherName}</td>
       <td>
-        <button class="editCourseBtn">Edit</button>
-        <button class="deleteCourseBtn">Delete</button>
-        <button class="enrollStudentsBtn">Enroll</button>
-      </td>
+    <button class="editCourseBtn" data-id="${course.id}" style="padding: 6px 12px; background: rgba(37, 99, 235, 0.08); color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">✏️ Edit</button>
+<button class="enrollStudentsBtn" data-id="${course.id}" style="padding: 6px 12px; background: rgba(34, 197, 94, 0.08); color: #22C55E; border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">👥 Enroll</button>
+<button class="deleteCourseBtn" data-id="${course.id}" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.08); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer;">🗑️ Delete</button>
+
+
+
+</td>
     `;
 
         // Edit button

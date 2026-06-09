@@ -1,7 +1,7 @@
 // course.js
 
 export class Course {
-    constructor(id, name, code, description, teacher, credits, semester) {
+    constructor(id, name, code, description, teacher, credits, semester, classId = null) {
         this.id = id;
         this.name = name;              // "Mathematics", "Physics", etc.
         this.code = code;              // "MATH101", "PHY202"
@@ -9,6 +9,7 @@ export class Course {
         this.teacher = teacher;        // Teacher ID who teaches it
         this.credits = credits;        // Course credits (3, 4, etc.)
         this.semester = semester;      // "Fall 2025", "Spring 2026"
+        this.classId = classId;        // ← NEW (Optional): Link to a specific class
         this.students = [];            // Array of student IDs enrolled
     }
 

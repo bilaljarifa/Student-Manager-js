@@ -67,14 +67,15 @@ export class ReportGenerator {
     getAttendancePercentageByStudent(studentId) {
         const studentAttendance = this.attendance.filter(a => a.studentId === studentId);
         if (studentAttendance.length === 0) return 0;
-        const present = studentAttendance.filter(a => a.isPresent()).length;
+        const present = studentAttendance.filter(aa => a.status === "Present")
+            .length;
         return Math.round((present / studentAttendance.length) * 100);
     }
 
     getOverallAttendancePercentage() {
         if (this.attendance.length === 0) return 0;
-        const present = this.attendance.filter(a => a.isPresent()).length;
-        return Math.round((present / this.attendance.length) * 100);
+        const present = this.attendance.filter(a => a.status === "Present").length;
+         return Math.round((present / this.attendance.length) * 100);
     }
 
     // ── EXAM REPORTS ──────────────────────

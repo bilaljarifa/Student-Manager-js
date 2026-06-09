@@ -19,13 +19,13 @@
 <body>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       🔔 TOAST NOTIFICATIONS (bottom right alerts)
-       ═══════════════════════════════════════════════════════════════════ -->
+          🔔 TOAST NOTIFICATIONS (bottom right alerts)
+          ═══════════════════════════════════════════════════════════════════ -->
   <div id="toast-container"></div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       👁️ STUDENT DETAIL MODAL (shows when clicking on student)
-       ═══════════════════════════════════════════════════════════════════ -->
+          👁️ STUDENT DETAIL MODAL (shows when clicking on student)
+          ═══════════════════════════════════════════════════════════════════ -->
   <div id="modalOverlay">
     <div id="modal">
       <button id="closeModal">✕</button>
@@ -40,13 +40,13 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       📱 MAIN APP CONTAINER (sidebar + content)
-       ═══════════════════════════════════════════════════════════════════ -->
+          📱 MAIN APP CONTAINER (sidebar + content)
+          ═══════════════════════════════════════════════════════════════════ -->
   <div id="app">
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         🏠 SIDEBAR (left navigation menu)
-         ═══════════════════════════════════════════════════════════════════ -->
+            🏠 SIDEBAR (left navigation menu)
+            ═══════════════════════════════════════════════════════════════════ -->
     <aside id="sidebar">
 
       <!-- SIDEBAR LOGO & TITLE -->
@@ -55,7 +55,7 @@
         <h2>Student Manager</h2>
       </div>
 
-      <!-- SIDEBAR NAVIGATION MENU (9 menu items) -->
+      <!-- SIDEBAR NAVIGATION MENU (10 menu items - includes Classes) -->
       <nav id="sidebar-nav">
         <a href="#" class="nav-item active" data-section="dashboard">
           <i class="bi bi-grid"></i>
@@ -75,6 +75,11 @@
         <a href="#" class="nav-item" data-section="teacher">
           <i class="bi bi-person-badge"></i>
           Teachers
+        </a>
+
+        <a href="#" class="nav-item" data-section="classes">
+          <i class="bi bi-building"></i>
+          Classes
         </a>
 
         <a href="#" class="nav-item" data-section="exams">
@@ -115,62 +120,100 @@
     </aside>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         📄 MAIN CONTENT AREA (all pages/sections)
-         ═══════════════════════════════════════════════════════════════════ -->
+            📄 MAIN CONTENT AREA (all pages/sections)
+            ═══════════════════════════════════════════════════════════════════ -->
     <main id="main-content">
 
       <!-- ───────────────────────────────────────────────────────────────
-           📊 PAGE 1: DASHBOARD
-           ─────────────────────────────────────────────────────────────── -->
+              📊 PAGE 1: DASHBOARD
+              ─────────────────────────────────────────────────────────────── -->
       <div id="welcomeSection">
         <h2 id="welcomeText"></h2>
         <p id="dateText"></p>
       </div>
 
       <section id="section-dashboard" class="section active">
-        <h1>Dashboard</h1>
-
-        <!-- Dashboard Stats Cards -->
-        <div class="stat">
-          <span>Passing Students</span>
-          <span id="passingCount">0</span>
-        </div>
-        <div class="stat">
-          <span>Failing Students</span>
-          <span id="failingCount">0</span>
-        </div>
-        <div class="stat">
-          <span>Total Classes</span>
-          <span id="classCount">0</span>
+        <!-- HEADER -->
+        <div class="dashboard-header">
+          <h1>Dashboard</h1>
+          <p class="dashboard-subtitle">Overview of student and course management</p>
         </div>
 
-        <!-- Dashboard Grid Stats -->
-        <div id="dashboard">
-          <div class="stat">
-            <span>Total Students</span>
-            <span id="counter">0</span>
+        <!-- KPI CARDS (4 in a row) -->
+        <div class="kpi-grid">
+          <!-- Total Students -->
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #EEF2FF; color: #4F46E5;">
+              <i class="bi bi-people"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-value" id="totalStudentsVal">0</div>
+              <div class="kpi-label">Total Students</div>
+              <div class="kpi-meta" id="activeStudents">0 active</div>
+            </div>
           </div>
-          <div class="stat">
-            <span>Paid</span>
-            <span id="paid">0</span>
+
+          <!-- Total Courses -->
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #F3E8FF; color: #A855F7;">
+              <i class="bi bi-book"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-value" id="totalCoursesVal">0</div>
+              <div class="kpi-label">Total Courses</div>
+              <div class="kpi-meta" id="activeCourses">0 active</div>
+            </div>
           </div>
-          <div class="stat">
-            <span>Pending</span>
-            <span id="pending">0</span>
+
+          <!-- Average GPA -->
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #ECFDF5; color: #059669;">
+              <i class="bi bi-mortarboard"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-value" id="avgGPAVal">0.0</div>
+              <div class="kpi-label">Average GPA</div>
+              <div class="kpi-meta">Out of 4.0</div>
+            </div>
           </div>
-          <div class="stat">
-            <span>Paid %</span>
-            <span id="percentage">0%</span>
-          </div>
-          <div class="stat">
-            <span>Pending %</span>
-            <span id="pendingPercentage">0%</span>
+
+          <!-- Attendance Rate -->
+          <div class="kpi-card">
+            <div class="kpi-icon" style="background: #FEF3C7; color: #D97706;">
+              <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="kpi-content">
+              <div class="kpi-value" id="avgAttendanceVal">0%</div>
+              <div class="kpi-label">Avg Attendance</div>
+              <div class="kpi-meta">This month</div>
+            </div>
           </div>
         </div>
 
-        <!-- Payment Chart -->
-        <div id="chart-container">
-          <canvas id="paymentChart"></canvas>
+        <!-- CHARTS & ACTIVITY SECTION -->
+        <div class="dashboard-bottom">
+          <!-- LEFT: Charts (65%) -->
+          <div class="charts-section">
+            <!-- Students by Grade Level -->
+            <div class="chart-card">
+              <h3>Students by Grade Level</h3>
+              <canvas id="gradesLevelChart" height="250"></canvas>
+            </div>
+
+            <!-- GPA Distribution -->
+            <div class="chart-card">
+              <h3>GPA Distribution</h3>
+              <canvas id="gpaDistributionChart" height="250"></canvas>
+            </div>
+          </div>
+
+          <!-- RIGHT: Recent Activity (35%) -->
+          <div class="activity-section">
+            <h3>Recent Activity</h3>
+            <div class="activity-feed" id="activityFeed">
+              <!-- Activities populated by JavaScript -->
+            </div>
+          </div>
         </div>
       </section>
 
@@ -213,7 +256,9 @@
         <div id="form-container">
           <input type="text" id="name" placeholder="Full Name">
           <input type="email" id="email" placeholder="Email">
-          <input type="text" id="studentClass" placeholder="Class">
+          <select id="studentClass">
+            <option value="">Select Class</option>
+          </select>
           <select id="paymentStatus">
             <option value="Paid">Paid</option>
             <option value="Pending">Pending</option>
@@ -249,7 +294,7 @@
       </section>
 
       <!-- ───────────────────────────────────────────────────────────────
-          <!-- GRADES PAGE -->
+              <!-- GRADES PAGE -->
       <section id="section-grades" class="section">
         <div class="section-header">
           <h1>Grades</h1>
@@ -262,7 +307,7 @@
             <input type="text" id="gradeSubject" placeholder="e.g. Mathematics">
           </div>
           <div class="form-field">
-            <label>Score (0-20)</label>
+            <label>Score (0-100)</label>
             <input type="number" id="gradeScore" placeholder="Score" min="0" max="100">
           </div>
           <button id="addGradeBtn" class="form-button">➕ Add Grade</button>
@@ -295,7 +340,7 @@
                 <th>Class</th>
                 <th>Subject</th>
                 <th>Score</th>
-                <th>Actions</th> <!-- ← ADD THIS LINE -->
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="gradesTableBody">
@@ -304,9 +349,10 @@
           </table>
         </div>
       </section>
+
       <!-- ───────────────────────────────────────────────────────────────
-           👨‍🏫 PAGE 4: TEACHERS (Admin only - add/edit/delete teachers)
-           ─────────────────────────────────────────────────────────────── -->
+              👨‍🏫 PAGE 4: TEACHERS (Admin only - add/edit/delete teachers)
+              ─────────────────────────────────────────────────────────────── -->
       <section id="section-teacher" class="section">
         <h1>Teachers</h1>
         <!-- ADD/EDIT TEACHER FORM -->
@@ -316,7 +362,7 @@
           <input type="text" id="teacherUsername" placeholder="Username">
           <input type="password" id="teacherPassword" placeholder="Password">
 
-          <!-- NEW: Classes field -->
+          <!-- Classes field -->
           <input type="text" id="teacherClasses" placeholder="Classes (e.g. 7, 4, 5)">
 
           <select id="teacherDepartment">
@@ -357,8 +403,68 @@
       </section>
 
       <!-- ───────────────────────────────────────────────────────────────
-           📋 PAGE 5: EXAMS (Create/manage exams)
-           ─────────────────────────────────────────────────────────────── -->
+              📚 CLASSES SECTION (Master Class Management)
+              ─────────────────────────────────────────────────────────────── -->
+      <section id="section-classes" class="section">
+        <h1>Classes & Divisions</h1>
+
+        <!-- ADD CLASS FORM -->
+        <div id="form-container">
+          <input type="text" id="className" placeholder="Class Name (e.g. Class 7)">
+          <input type="text" id="classSection" placeholder="Section (e.g. Science, Math, English)">
+          <select id="classTeacher">
+            <option value="">Select Teacher</option>
+          </select>
+          <button id="addClassBtn">Add Class</button>
+        </div>
+
+        <!-- CLASSES TABLE -->
+        <table id="classesTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Class Name</th>
+              <th>Section</th>
+              <th>Teacher</th>
+              <th>Students</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="classes"></tbody>
+        </table>
+      </section>
+
+      <!-- EDIT CLASS MODAL -->
+      <div id="editClassModalOverlay" class="confirm-overlay">
+        <div class="confirm-modal" style="text-align:left; width:480px;">
+          <h3 style="margin-bottom:20px;">✏️ Edit Class</h3>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div>
+              <label>Class Name</label>
+              <input type="text" id="editClassName" class="edit-input" placeholder="Class Name">
+            </div>
+            <div>
+              <label>Section</label>
+              <input type="text" id="editClassSection" class="edit-input" placeholder="Section">
+            </div>
+            <div>
+              <label>Teacher</label>
+              <select id="editClassTeacher" class="edit-input">
+                <option value="">Select Teacher</option>
+              </select>
+            </div>
+          </div>
+          <div class="confirm-buttons" style="margin-top:24px;">
+            <button id="editClassCancelBtn" class="confirm-cancel">Cancel</button>
+            <button id="editClassSaveBtn" class="confirm-ok">💾 Save Changes</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ───────────────────────────────────────────────────────────────
+              📋 PAGE 5: EXAMS (Create/manage exams)
+              ─────────────────────────────────────────────────────────────── -->
       <section id="section-exams" class="section">
         <h1>Exams</h1>
 
@@ -366,7 +472,9 @@
         <div id="form-container">
           <input type="text" id="examName" placeholder="Exam Name">
           <input type="text" id="examSubject" placeholder="Subject">
-          <input type="text" id="examClass" placeholder="Class">
+          <select id="examClass">
+            <option value="">Select Class</option>
+          </select>
           <input type="date" id="examDate" />
           <input type="time" id="examTime" placeholder="Exam Time" />
           <input type="number" id="examTotalMarks" placeholder="Total Marks" />
@@ -375,18 +483,17 @@
         <!-- EXAMS TABLE -->
         <table id="examsTable">
           <thead>
-
-              <tr>
-                <th>#</th>
-                <th>Exam Name</th>
-                <th>Subject</th>
-                <th>Class</th>
-                <th>Date</th>
-                <th>Total Marks</th>
-                <th>Time</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+            <tr>
+              <th>#</th>
+              <th>Exam Name</th>
+              <th>Subject</th>
+              <th>Class</th>
+              <th>Date</th>
+              <th>Total Marks</th>
+              <th>Time</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
           <tbody id="exams"></tbody>
         </table>
       </section>
@@ -428,10 +535,9 @@
         </table>
 
       </section>
-
       <!-- ───────────────────────────────────────────────────────────────
-           📚 PAGE 7: COURSES (Manage courses + enrollment)
-           ─────────────────────────────────────────────────────────────── -->
+              📚 PAGE 7: COURSES (Manage courses + enrollment)
+              ─────────────────────────────────────────────────────────────── -->
       <section id="section-courses" class="section">
         <h1>Courses & Modules</h1>
 
@@ -467,8 +573,8 @@
       </section>
 
       <!-- ───────────────────────────────────────────────────────────────
-           📈 PAGE 8: REPORTS (Analytics & export)
-           ─────────────────────────────────────────────────────────────── -->
+              📈 PAGE 8: REPORTS (Analytics & export)
+              ─────────────────────────────────────────────────────────────── -->
       <section id="section-reports" class="section">
         <h1>Reports & Analytics</h1>
         <button id="exportReportBtn">Export Report (PDF)</button>
@@ -476,8 +582,8 @@
       </section>
 
       <!-- ───────────────────────────────────────────────────────────────
-           📊 PAGE 9: ANALYTICS (Charts & statistics)
-           ─────────────────────────────────────────────────────────────── -->
+              📊 PAGE 9: ANALYTICS (Charts & statistics)
+              ─────────────────────────────────────────────────────────────── -->
       <section id="section-analytics" class="section">
         <h1>Analytics & Charts</h1>
 
@@ -513,8 +619,8 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       ✏️ EDIT STUDENT MODAL
-       ═══════════════════════════════════════════════════════════════════ -->
+          ✏️ EDIT STUDENT MODAL
+          ═══════════════════════════════════════════════════════════════════ -->
   <div id="editModalOverlay" class="confirm-overlay">
     <div class="confirm-modal" style="text-align:left; width:460px;">
       <h3 style="margin-bottom:20px;">✏️ Edit Student</h3>
@@ -535,8 +641,8 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       🔐 CUSTOM CONFIRMATION MODAL (Delete/Confirm actions)
-       ═══════════════════════════════════════════════════════════════════ -->
+          🔐 CUSTOM CONFIRMATION MODAL (Delete/Confirm actions)
+          ═══════════════════════════════════════════════════════════════════ -->
   <div id="confirmOverlay" class="confirm-overlay">
     <div class="confirm-modal">
       <h3 id="confirmTitle">Confirm Action</h3>
@@ -549,120 +655,219 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       💾 ENROLLMENT MODAL (Enroll students in courses)
-       ═══════════════════════════════════════════════════════════════════ -->
+          💾 ENROLLMENT MODAL (Enroll students in courses)
+          ═══════════════════════════════════════════════════════════════════ -->
   <div id="enrollmentModalContainer"></div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
-       🚀 JAVASCRIPT - Main app controller
-       ═══════════════════════════════════════════════════════════════════ -->
+          ✏️ EDIT GRADE MODAL
+          ═══════════════════════════════════════════════════════════════════ -->
+  <div id="editGradeModalOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="text-align:left; width:460px;">
+      <h3>✏️ Edit Grade</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Student</label>
+          <input type="text" id="editGradeStudent" class="edit-input" placeholder="Student Name" readonly
+            style="background:var(--background); cursor:not-allowed;">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Subject</label>
+          <input type="text" id="editGradeSubject" class="edit-input" placeholder="Enter subject name">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Score
+            (0-100)</label>
+          <input type="number" id="editGradeScore" class="edit-input" placeholder="Enter new score" min="0" max="100">
+        </div>
+      </div>
+      <div class="confirm-buttons" style="margin-top:24px;">
+        <button id="editGradeCancelBtn" class="confirm-cancel">Cancel</button>
+        <button id="editGradeSaveBtn" class="confirm-ok">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+          ✏️ EDIT TEACHER MODAL
+          ═══════════════════════════════════════════════════════════════════ -->
+  <div id="editTeacherModalOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="text-align:left; width:480px;">
+      <h3 style="margin-bottom:20px;">✏️ Edit Teacher</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label>Name</label>
+          <input type="text" id="editTeacherName" class="edit-input" placeholder="Teacher Name">
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" id="editTeacherEmail" class="edit-input" placeholder="Email">
+        </div>
+        <div>
+          <label>Username</label>
+          <input type="text" id="editTeacherUsername" class="edit-input" placeholder="Username">
+        </div>
+        <div>
+          <label>Password</label>
+          <input type="password" id="editTeacherPassword" class="edit-input" placeholder="Password">
+        </div>
+        <div>
+          <label>Classes</label>
+          <input type="text" id="editTeacherClasses" class="edit-input" placeholder="Classes (7, 4, 5)">
+        </div>
+        <div>
+          <label>Department</label>
+          <select id="editTeacherDepartment" class="edit-input">
+            <option value="">Select Department</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Science">Science</option>
+            <option value="English">English</option>
+            <option value="History">History</option>
+            <option value="Physical Education">Physical Education</option>
+            <option value="Arts">Arts</option>
+          </select>
+        </div>
+        <div>
+          <label>Contract Status</label>
+          <select id="editTeacherContractStatus" class="edit-input">
+            <option value="Permanent">Permanent</option>
+            <option value="Contract">Contract</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Substitute">Substitute</option>
+          </select>
+        </div>
+        <div>
+          <label>Course Workload</label>
+          <input type="number" id="editTeacherCourseWorkload" class="edit-input" placeholder="Number of classes"
+            min="0">
+        </div>
+      </div>
+      <div class="confirm-buttons" style="margin-top:24px;">
+        <button id="editTeacherCancelBtn" class="confirm-cancel">Cancel</button>
+        <button id="editTeacherSaveBtn" class="confirm-ok">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+          ✏️ EDIT EXAM MODAL
+          ═══════════════════════════════════════════════════════════════════ -->
+  <div id="editExamModalOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="text-align:left; width:460px;">
+      <h3 style="margin-bottom:20px;">Edit Exam</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <input type="text" id="editExamName" class="edit-input" placeholder="Exam Name">
+        <input type="text" id="editExamSubject" class="edit-input" placeholder="Subject">
+        <select id="editExamClass" class="edit-input">
+          <option value="">Select Class</option>
+        </select>
+        <input type="date" id="editExamDate" class="edit-input">
+        <input type="number" id="editExamTotalMarks" class="edit-input" placeholder="Total Marks" min="0">
+      </div>
+      <div class="confirm-buttons" style="margin-top:24px;">
+        <button id="editExamCancelBtn" class="confirm-cancel">Cancel</button>
+        <button id="editExamSaveBtn" class="confirm-ok">Save Changes</button>
+      </div>
+    </div>
+  </div>
+  <!-- ═══════════════════════════════════════════════════════════════════
+     ✏️ EDIT ATTENDANCE MODAL
+     ═══════════════════════════════════════════════════════════════════ -->
+  <div id="editAttendanceModalOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="text-align:left; width:460px;">
+      <h3 style="margin-bottom:20px;">✏️ Edit Attendance</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Student</label>
+          <input type="text" id="editAttendanceStudent" class="edit-input" placeholder="Student Name" readonly
+            style="background:var(--background); cursor:not-allowed;">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Date</label>
+          <input type="date" id="editAttendanceDate" class="edit-input">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Subject/Class</label>
+          <input type="text" id="editAttendanceSubject" class="edit-input" placeholder="Subject">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Status</label>
+          <select id="editAttendanceStatus" class="edit-input">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+            <option value="Excused">Excused</option>
+          </select>
+        </div>
+      </div>
+      <div class="confirm-buttons" style="margin-top:24px;">
+        <button id="editAttendanceCancelBtn" class="confirm-cancel">Cancel</button>
+        <button id="editAttendanceSaveBtn" class="confirm-ok">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+     ✏️ EDIT COURSE MODAL
+     ═══════════════════════════════════════════════════════════════════ -->
+  <div id="editCourseModalOverlay" class="confirm-overlay">
+    <div class="confirm-modal" style="text-align:left; width:480px;">
+      <h3 style="margin-bottom:20px;">✏️ Edit Course</h3>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Course
+            Name</label>
+          <input type="text" id="editCourseName" class="edit-input" placeholder="Course Name">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Course
+            Code</label>
+          <input type="text" id="editCourseCode" class="edit-input" placeholder="Course Code">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Description</label>
+          <textarea id="editCourseDescription" class="edit-input" placeholder="Course Description"
+            style="resize: vertical; min-height: 80px;"></textarea>
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Credits</label>
+          <input type="number" id="editCourseCredits" class="edit-input" placeholder="Credits" min="1" max="4">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Semester</label>
+          <input type="text" id="editCourseSemester" class="edit-input" placeholder="Semester (Fall 2025)">
+        </div>
+        <div>
+          <label
+            style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Teacher</label>
+          <select id="editCourseTeacher" class="edit-input">
+            <option value="">Select Teacher</option>
+          </select>
+        </div>
+      </div>
+      <div class="confirm-buttons" style="margin-top:24px;">
+        <button id="editCourseCancelBtn" class="confirm-cancel">Cancel</button>
+        <button id="editCourseSaveBtn" class="confirm-ok">💾 Save Changes</button>
+      </div>
+    </div>
+  </div>
+  <!-- ═══════════════════════════════════════════════════════════════════
+          🚀 JAVASCRIPT - Main app controller
+          ═══════════════════════════════════════════════════════════════════ -->
   <script type="module" src="./js/app.js"></script>
 
 </body>
-<!-- EDIT GRADE MODAL -->
-
-<div id="editGradeModalOverlay" class="confirm-overlay">
-  <div class="confirm-modal" style="text-align:left; width:460px;">
-    <h3>✏️ Edit Grade</h3>
-    <div style="display:flex; flex-direction:column; gap:12px;">
-      <div>
-        <label
-          style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Student</label>
-        <input type="text" id="editGradeStudent" class="edit-input" placeholder="Student Name" readonly
-          style="background:var(--background); cursor:not-allowed;">
-      </div>
-      <div>
-        <label
-          style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Subject</label>
-        <input type="text" id="editGradeSubject" class="edit-input" placeholder="Enter subject name">
-      </div>
-      <div>
-        <label style="font-weight:600; font-size:12px; color:var(--text-muted); display:block; margin-bottom:6px;">Score
-          (0-100)</label>
-        <input type="number" id="editGradeScore" class="edit-input" placeholder="Enter new score" min="0" max="100">
-      </div>
-    </div>
-    <div class="confirm-buttons" style="margin-top:24px;">
-      <button id="editGradeCancelBtn" class="confirm-cancel">Cancel</button>
-      <button id="editGradeSaveBtn" class="confirm-ok">💾 Save Changes</button>
-    </div>
-  </div>
-</div>
-<!-- EDIT TEACHER MODAL -->
-<div id="editTeacherModalOverlay" class="confirm-overlay">
-  <div class="confirm-modal" style="text-align:left; width:480px;">
-    <h3 style="margin-bottom:20px;">✏️ Edit Teacher</h3>
-    <div style="display:flex; flex-direction:column; gap:12px;">
-      <div>
-        <label>Name</label>
-        <input type="text" id="editTeacherName" class="edit-input" placeholder="Teacher Name">
-      </div>
-      <div>
-        <label>Email</label>
-        <input type="email" id="editTeacherEmail" class="edit-input" placeholder="Email">
-      </div>
-      <div>
-        <label>Username</label>
-        <input type="text" id="editTeacherUsername" class="edit-input" placeholder="Username">
-      </div>
-      <div>
-        <label>Password</label>
-        <input type="password" id="editTeacherPassword" class="edit-input" placeholder="Password">
-      </div>
-      <div>
-        <label>Classes</label>
-        <input type="text" id="editTeacherClasses" class="edit-input" placeholder="Classes (7, 4, 5)">
-      </div>
-      <div>
-        <label>Department</label>
-        <select id="editTeacherDepartment" class="edit-input">
-          <option value="">Select Department</option>
-          <option value="Mathematics">Mathematics</option>
-          <option value="Science">Science</option>
-          <option value="English">English</option>
-          <option value="History">History</option>
-          <option value="Physical Education">Physical Education</option>
-          <option value="Arts">Arts</option>
-        </select>
-      </div>
-      <div>
-        <label>Contract Status</label>
-        <select id="editTeacherContractStatus" class="edit-input">
-          <option value="Permanent">Permanent</option>
-          <option value="Contract">Contract</option>
-          <option value="Part-time">Part-time</option>
-          <option value="Substitute">Substitute</option>
-        </select>
-      </div>
-      <div>
-        <label>Course Workload</label>
-        <input type="number" id="editTeacherCourseWorkload" class="edit-input" placeholder="Number of classes" min="0">
-      </div>
-    </div>
-    <div class="confirm-buttons" style="margin-top:24px;">
-      <button id="editTeacherCancelBtn" class="confirm-cancel">Cancel</button>
-      <button id="editTeacherSaveBtn" class="confirm-ok">💾 Save Changes</button>
-    </div>
-  </div>
-</div>
-<!-- EDIT EXAM MODAL -->
-<div id="editExamModalOverlay" class="confirm-overlay">
-  <div class="confirm-modal" style="text-align:left; width:460px;">
-    <h3 style="margin-bottom:20px;">Edit Exam</h3>
-
-    <div style="display:flex; flex-direction:column; gap:12px;">
-      <input type="text" id="editExamName" class="edit-input" placeholder="Exam Name">
-      <input type="text" id="editExamSubject" class="edit-input" placeholder="Subject">
-      <input type="text" id="editExamClass" class="edit-input" placeholder="Class">
-      <input type="date" id="editExamDate" class="edit-input">
-      <input type="number" id="editExamTotalMarks" class="edit-input" placeholder="Total Marks" min="0">
-    </div>
-
-    <div class="confirm-buttons" style="margin-top:24px;">
-      <button id="editExamCancelBtn" class="confirm-cancel">Cancel</button>
-      <button id="editExamSaveBtn" class="confirm-ok">Save Changes</button>
-    </div>
-  </div>
-</div>
 
 </html>

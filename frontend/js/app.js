@@ -6,16 +6,16 @@ import { isAdmin, filterStudentsByRole, canDeleteStudent, canEditStudent, canAdd
 import { Student } from "./student.js";
 import { validation } from "./validation.js";
 import { renderStudents } from "./ui.js";
-import { saveStudents, loadStudents, saveTeachers, loadTeachers, saveExams, loadExams, saveAttendance, loadAttendance, saveCourses, loadCourses } from "./storage.js";
+import { saveStudents, loadStudents, saveTeachers, loadTeachers, saveExams, loadExams, saveAttendance, loadAttendance, saveCourses, loadCourses, saveClasses, loadClasses } from "./storage.js";
 import { updateCounter } from "./counter.js";
-import { updateChart } from "./chart.js";
 import { showToast } from "./toast.js";
 import { getAverage, getStatus } from "./grades.js";
 import { renderGradesPage, updateGradesTable, updateGradesStats } from "./grades-page.js";
 import { displayWelcome } from "./welcome.js";
-import { updateDashboardStats } from "./dashboardStats.js";
 import { Teacher } from "./teacher.js";
 import { renderTeachers } from "./teacher-ui.js";
+import { Class } from "./class.js";
+import { renderClasses } from "./class-ui.js";
 import { Exam } from "./exam.js";
 import { renderExams } from "./exam-ui.js";
 import { Attendance } from "./attendance.js";
@@ -25,6 +25,9 @@ import { renderCourses, getCoursesByTeacher, getCoursesByStudent } from "./cours
 import { ReportGenerator } from "./reports.js";
 import { renderReportsSummary } from "./reports-ui.js";
 import { getGradeDistribution, getStudentPerformanceStats } from "./analytics.js";
+import { updateDashboardStats } from "./dashboardStats.js";
+import { updateDashboardCharts } from "./dashboardCharts.js";
+import { updateActivityFeed } from "./dashboardActivity.js";
 
 // ═══════════════════════════════════════════════════════════════════
 // AUTH CHECK — redirect to login if not logged in
@@ -65,24 +68,29 @@ const logoutBtn = document.querySelector("#logoutBtn");
 const classFilterGrades = document.querySelector("#classFilterGrades");
 const filterStudent = document.querySelector("#studentFilterGrades");
 const gradesTableBody = document.querySelector("#gradesTableBody");
-const avgGrade = document.querySelector("#avgGrade");
-const highestGrade = document.querySelector("#highestGrade");
-const lowestGrade = document.querySelector("#lowestGrade");
 const gradeSubject = document.querySelector("#gradeSubject");
 const gradeScore = document.querySelector("#gradeScore");
 const addGradeBtn = document.querySelector("#addGradeBtn");
+// NOTE: avgGrade, highestGrade, lowestGrade not in HTML, so not selected
 
 // ── Teachers Form ──
 const teacherName = document.querySelector("#teacherName");
 const teacherEmail = document.querySelector("#teacherEmail");
 const teacherUsername = document.querySelector("#teacherUsername");
 const teacherPassword = document.querySelector("#teacherPassword");
-const teacherClasses = document.querySelector("#teacherClasses");  // ← NEW
+const teacherClasses = document.querySelector("#teacherClasses");
 const teacherDepartment = document.querySelector("#teacherDepartment");
 const teacherContractStatus = document.querySelector("#teacherContractStatus");
 const teacherCourseWorkload = document.querySelector("#teacherCourseWorkload");
 const addTeacherBtn = document.querySelector("#addTeacherBtn");
 const teachersContainer = document.querySelector("#teachers");
+
+// ── Classes Form (NEW!) ──
+const className = document.querySelector("#className");
+const classSection = document.querySelector("#classSection");
+const classTeacher = document.querySelector("#classTeacher");
+const addClassBtn = document.querySelector("#addClassBtn");
+const classesContainer = document.querySelector("#classes");
 
 // ── Exams Page ──
 const examName = document.querySelector("#examName");
@@ -93,6 +101,7 @@ const addExamBtn = document.querySelector("#addExamBtn");
 const examsContainer = document.querySelector("#exams");
 const examClass = document.querySelector("#examClass");
 const examTime = document.querySelector("#examTime");
+
 // ── Attendance Page ──
 const attendanceStudent = document.querySelector("#attendanceStudent");
 const attendanceDate = document.querySelector("#attendanceDate");
@@ -100,7 +109,6 @@ const attendanceSubject = document.querySelector("#attendanceSubject");
 const attendanceStatus = document.querySelector("#attendanceStatus");
 const addAttendanceBtn = document.querySelector("#addAttendanceBtn");
 const attendanceContainer = document.querySelector("#attendance");
-const overallAttendance = document.querySelector("#overallAttendance");
 
 // ── Courses Page ──
 const courseName = document.querySelector("#courseName");
@@ -116,9 +124,6 @@ const coursesContainer = document.querySelector("#courses");
 const reportsContainer = document.querySelector("#reportsContainer");
 const exportReportBtn = document.querySelector("#exportReportBtn");
 
-// ── Analytics Page ──
-const analyticsContainer = document.querySelector("#analytics");
-
 // ── Enrollment Modal ──
 const enrollmentModalContainer = document.querySelector("#enrollmentModalContainer");
 
@@ -127,6 +132,7 @@ const enrollmentModalContainer = document.querySelector("#enrollmentModalContain
 // ═══════════════════════════════════════════════════════════════════
 const students = loadStudents();
 const teachers = loadTeachers();
+const classes = loadClasses();
 const exams = loadExams();
 const attendance = loadAttendance();
 const courses = loadCourses();
@@ -144,31 +150,89 @@ const reportGenerator = new ReportGenerator(students, teachers, courses, exams, 
 // ═══════════════════════════════════════════════════════════════════
 // INITIAL RENDER — run everything once when page loads
 // ═══════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════
+// INITIAL RENDER — run everything once when page loads
+// ═══════════════════════════════════════════════════════════════════
 displayWelcome();
 renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
 renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
+renderClasses(classesContainer, classes, teachers, onDeleteClass, onEditClass);
 renderGradesPage(students, filterStudent);
 renderExams(examsContainer, exams, onDeleteExam, onEditExam);
 renderCourses(coursesContainer, courses, teachers, onDeleteCourse, onEditCourse);
 
-updateDashboardStats(students);
-updateCounter(students);
-updateChart(students);
-updateClassFilter();
-updateClassFilterGrades();
-updatePagination();
-updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
-updateAttendanceStudentDropdown();
-updateCourseTeacherDropdown();
+// ── DASHBOARD ──
+  updateDashboardStats(students, courses, attendance);
+  updateDashboardCharts(students);
+  updateActivityFeed(students, students, attendance, courses);
 
-generateAndRenderReport();
-updateAnalytics(students);  // ← runs AFTER report is ready
+  // ── OTHER UPDATES ──
+  updateCounter(students);  
+  updateClassFilter();
+  updateClassFilterGrades();
+  updateClassTeacherDropdowns();
+  updatePagination();
+  updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
+  updateAttendanceStudentDropdown();
+  updateCourseTeacherDropdown();
+
+  generateAndRenderReport();
+  updateAnalytics(students);
+
+// ═══════════════════════════════════════════════════════════════════
+// CLASSES — CRUD functions (NEW!)
+// ═══════════════════════════════════════════════════════════════════
+
+function onEditClass(cls) {
+  document.querySelector("#editClassName").value = cls.name;
+  document.querySelector("#editClassSection").value = cls.section;
+  document.querySelector("#editClassTeacher").value = cls.teacher;
+
+  document.querySelector("#editClassModalOverlay").classList.add("active");
+
+  document.querySelector("#editClassSaveBtn").onclick = () => {
+    cls.name = document.querySelector("#editClassName").value.trim();
+    cls.section = document.querySelector("#editClassSection").value.trim();
+    cls.teacher = parseInt(document.querySelector("#editClassTeacher").value);
+
+    saveClasses(classes);
+    renderClasses(classesContainer, classes, teachers, onDeleteClass, onEditClass);
+    document.querySelector("#editClassModalOverlay").classList.remove("active");
+    showToast("Class updated!", "info");
+  };
+
+  document.querySelector("#editClassCancelBtn").onclick = () => {
+    document.querySelector("#editClassModalOverlay").classList.remove("active");
+  };
+}
+
+async function onDeleteClass(classId) {
+  const confirmed = await showConfirm("Delete Class", "Are you sure you want to delete this class? This will affect all students, exams, and attendance records.");
+  if (!confirmed) return;
+
+  const classToDelete = classes.find(c => c.id === classId);
+
+  // Remove all students from this class
+  classToDelete.students.forEach(studentId => {
+    const student = students.find(s => s.id === studentId);
+    if (student) student.classId = null;
+  });
+
+  const updatedClasses = classes.filter(c => c.id !== classId);
+  classes.length = 0;
+  classes.push(...updatedClasses);
+
+  saveClasses(classes);
+  saveStudents(students);
+  renderClasses(classesContainer, classes, teachers, onDeleteClass, onEditClass);
+  updateClassTeacherDropdowns();
+  showToast("Class deleted!", "error");
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // STUDENTS — CRUD functions
 // ═══════════════════════════════════════════════════════════════════
 
-// ── Edit student — opens the edit modal (NOT the add form) ──
 function onEdit(student) {
   if (!canEditStudent()) {
     showToast("Teachers cannot edit students!", "error");
@@ -191,7 +255,7 @@ function onEdit(student) {
     saveStudents(students);
     renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
     updateCounter(students);
-    updateChart(students);
+
     updateClassFilter();
     updateDashboardStats(students);
 
@@ -204,7 +268,6 @@ function onEdit(student) {
   };
 }
 
-// ── Delete student — confirms then removes ──
 async function onDelete(studentId) {
   if (!canDeleteStudent()) {
     showToast("Teachers cannot delete students!", "error");
@@ -225,7 +288,7 @@ async function onDelete(studentId) {
     saveStudents(students);
     renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
     updateCounter(students);
-    updateChart(students);
+
     updateClassFilter();
     updatePagination();
     updateDashboardStats(students);
@@ -235,7 +298,6 @@ async function onDelete(studentId) {
   }, 400);
 }
 
-// ── Row click — opens student detail modal ──
 function onRowClick(student) {
   const scores = student.grades.map(g => typeof g === "object" ? g.score : g);
   const average = getAverage(scores);
@@ -256,7 +318,6 @@ function onRowClick(student) {
   document.querySelector("#modalOverlay").classList.add("active");
 }
 
-// ── Add grade from student row ──
 function onAddGrade(studentId, grade) {
   const student = students.find(s => s.id === studentId);
   student.grades.push({ subject: "General", score: grade });
@@ -269,7 +330,6 @@ function onAddGrade(studentId, grade) {
   updateAnalytics(students);
 }
 
-// ── Clear all students ──
 async function clearAll() {
   const confirmed = await showConfirm("Delete All", "Are you sure you want to delete all students?");
   if (!confirmed) return;
@@ -278,14 +338,13 @@ async function clearAll() {
   saveStudents(students);
   renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
   updateCounter(students);
-  updateChart(students);
+
   updateClassFilter();
   updatePagination();
   updateDashboardStats(students);
   showToast("All students deleted!", "error");
 }
 
-// ── Export students to CSV ──
 function exportCSV() {
   const header = "Name,Email,Class,Payment";
   const rows = students.map(s => `${s.name},${s.email},${s.studentClass},${s.paymentStatus}`);
@@ -305,7 +364,6 @@ function exportCSV() {
 // STUDENTS — Helper functions (filter, pagination, class filter)
 // ═══════════════════════════════════════════════════════════════════
 
-// Update class filter dropdown with unique classes (for Grades page)
 function updateClassFilterGrades() {
   const uniqueClasses = [...new Set(students.map(s => s.studentClass))];
   classFilterGrades.innerHTML = '<option value="">All Classes</option>';
@@ -317,7 +375,6 @@ function updateClassFilterGrades() {
   });
 }
 
-// Update student dropdown when class changes
 function updateStudentFilterByClass() {
   const selectedClass = classFilterGrades.value;
   const filteredStudents = selectedClass
@@ -333,14 +390,47 @@ function updateStudentFilterByClass() {
   });
 }
 
-// Returns only students for the current page
+function updateClassTeacherDropdowns() {
+  // Update Student form class dropdown
+  if (classInput) {
+    classInput.innerHTML = '<option value="">Select Class</option>';
+    classes.forEach(cls => {
+      const option = document.createElement("option");
+      option.value = cls.id;
+      option.textContent = `${cls.name} - ${cls.section}`;
+      classInput.appendChild(option);
+    });
+  }
+
+  // Update Exam class dropdown
+  if (examClass) {
+    examClass.innerHTML = '<option value="">Select Class</option>';
+    classes.forEach(cls => {
+      const option = document.createElement("option");
+      option.value = cls.id;
+      option.textContent = `${cls.name} - ${cls.section}`;
+      examClass.appendChild(option);
+    });
+  }
+
+  // Update Class Teacher dropdown in Classes form
+  if (classTeacher) {
+    classTeacher.innerHTML = '<option value="">Select Teacher</option>';
+    teachers.forEach(teacher => {
+      const option = document.createElement("option");
+      option.value = teacher.id;
+      option.textContent = teacher.name;
+      classTeacher.appendChild(option);
+    });
+  }
+}
+
 function getPageStudents() {
   const start = (currentPage - 1) * studentsPerPage;
   const end = start + studentsPerPage;
   return students.slice(start, end);
 }
 
-// Returns students matching search + class filter
 function getFilteredStudents() {
   const searchValue = searchInput.value.toLowerCase();
   const classValue = classFilter.value;
@@ -358,7 +448,6 @@ function getFilteredStudents() {
   });
 }
 
-// Updates class filter dropdown with unique classes
 function updateClassFilter() {
   const uniqueClasses = [...new Set(students.map(s => s.studentClass))];
   classFilter.innerHTML = '<option value="">All Classes</option>';
@@ -370,7 +459,6 @@ function updateClassFilter() {
   });
 }
 
-// Updates Previous/Next buttons and page info text
 function updatePagination() {
   const totalPages = Math.ceil(students.length / studentsPerPage);
   pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
@@ -388,7 +476,6 @@ function onEditTeacher(teacher) {
     return;
   }
 
-  // Fill modal inputs
   document.querySelector("#editTeacherName").value = teacher.name;
   document.querySelector("#editTeacherEmail").value = teacher.email;
   document.querySelector("#editTeacherUsername").value = teacher.username;
@@ -398,10 +485,8 @@ function onEditTeacher(teacher) {
   document.querySelector("#editTeacherContractStatus").value = teacher.contractStatus || "Permanent";
   document.querySelector("#editTeacherCourseWorkload").value = teacher.courseWorkload || 0;
 
-  // Show modal
   document.querySelector("#editTeacherModalOverlay").classList.add("active");
 
-  // Save button
   document.querySelector("#editTeacherSaveBtn").onclick = () => {
     teacher.name = document.querySelector("#editTeacherName").value.trim();
     teacher.email = document.querySelector("#editTeacherEmail").value.trim();
@@ -419,7 +504,6 @@ function onEditTeacher(teacher) {
     showToast("Teacher updated!", "info");
   };
 
-  // Cancel button
   document.querySelector("#editTeacherCancelBtn").onclick = () => {
     document.querySelector("#editTeacherModalOverlay").classList.remove("active");
   };
@@ -439,6 +523,8 @@ async function onDeleteTeacher(teacherId) {
   teachers.push(...updatedTeachers);
   saveTeachers(teachers);
   renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
+  updateCourseTeacherDropdown();
+  updateClassTeacherDropdowns();
   showToast("Teacher deleted!", "error");
 }
 
@@ -453,7 +539,7 @@ function onEditExam(exam) {
   }
   document.querySelector("#editExamName").value = exam.name || "";
   document.querySelector("#editExamSubject").value = exam.subject || "";
-  document.querySelector("#editExamClass").value = exam.class || "";
+  document.querySelector("#editExamClass").value = exam.classId || "";
   document.querySelector("#editExamDate").value = exam.date || "";
   document.querySelector("#editExamTotalMarks").value = exam.totalMarks || 0;
 
@@ -462,7 +548,7 @@ function onEditExam(exam) {
   document.querySelector("#editExamSaveBtn").onclick = () => {
     exam.name = document.querySelector("#editExamName").value.trim();
     exam.subject = document.querySelector("#editExamSubject").value.trim();
-    exam.class = document.querySelector("#editExamClass").value.trim();
+    exam.classId = parseInt(document.querySelector("#editExamClass").value) || null;  // ← Use classId
     exam.date = document.querySelector("#editExamDate").value;
     exam.totalMarks = parseInt(document.querySelector("#editExamTotalMarks").value) || 0;
     saveExams(exams);
@@ -505,16 +591,8 @@ function updateAttendanceStudentDropdown() {
 
 function renderAttendanceRecords(studentId) {
   const studentAttendance = attendance.filter(a => a.studentId === parseInt(studentId));
-  const student = students.find(s => s.id === parseInt(studentId));
-  renderAttendance(attendanceContainer, studentAttendance, student.name, onDeleteAttendance, onEditAttendance);
-  updateAttendanceStats(studentId);
+  renderAttendance(attendanceContainer, studentAttendance, students, onDeleteAttendance, onEditAttendance);
 }
-
-function updateAttendanceStats(studentId) {
-  const percentage = getAttendancePercentage(attendance, parseInt(studentId));
-  overallAttendance.textContent = percentage + "%";
-}
-
 function onEditAttendance(record) {
   attendanceDate.value = record.date;
   attendanceSubject.value = record.subject;
@@ -581,26 +659,26 @@ async function onDeleteCourse(courseId) {
 // ═══════════════════════════════════════════════════════════════════
 function openEnrollmentModal(course) {
   const modalHTML = `
-    <div id="enrollmentModal" class="modal-overlay">
-      <div class="modal-content">
-        <h2>Enroll Students — ${course.name}</h2>
-        <div class="modal-body">
-          <div class="left-panel">
-            <h3>Available Students</h3>
-            <input type="text" id="searchEnrollStudent" placeholder="Search students...">
-            <div id="availableStudents"></div>
+      <div id="enrollmentModal" class="modal-overlay">
+        <div class="modal-content">
+          <h2>Enroll Students — ${course.name}</h2>
+          <div class="modal-body">
+            <div class="left-panel">
+              <h3>Available Students</h3>
+              <input type="text" id="searchEnrollStudent" placeholder="Search students...">
+              <div id="availableStudents"></div>
+            </div>
+            <div class="right-panel">
+              <h3>Enrolled Students</h3>
+              <div id="enrolledStudents"></div>
+            </div>
           </div>
-          <div class="right-panel">
-            <h3>Enrolled Students</h3>
-            <div id="enrolledStudents"></div>
+          <div class="modal-footer">
+            <button id="closeEnrollmentModal">Close</button>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button id="closeEnrollmentModal">Close</button>
         </div>
       </div>
-    </div>
-  `;
+    `;
 
   enrollmentModalContainer.innerHTML = modalHTML;
 
@@ -865,7 +943,7 @@ if (deleteSelectedBtn) {
       if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
 
       updateCounter(students);
-      updateChart(students);
+
       updateClassFilter();
       updatePagination();
       updateDashboardStats(students);
@@ -894,18 +972,18 @@ if (deleteByClassBtn) {
     const modal = document.createElement("div");
     modal.className = "confirm-overlay active";
     modal.innerHTML = `
-      <div class="confirm-modal" style="text-align:left; width:380px;">
-        <h3 style="margin-bottom:16px;">🗑 Delete All Students in Class</h3>
-        <label style="display:block; margin-bottom:8px; font-weight:600;">Select Class:</label>
-        <select id="deleteClassSelect" style="width:100%; padding:10px; border:1px solid #E5E7EB; border-radius:8px; margin-bottom:20px;">
-          ${classOptions}
-        </select>
-        <div class="confirm-buttons">
-          <button id="cancelDeleteClass"  class="confirm-cancel">Cancel</button>
-          <button id="confirmDeleteClass" class="confirm-ok">🗑 Delete All</button>
+        <div class="confirm-modal" style="text-align:left; width:380px;">
+          <h3 style="margin-bottom:16px;">🗑 Delete All Students in Class</h3>
+          <label style="display:block; margin-bottom:8px; font-weight:600;">Select Class:</label>
+          <select id="deleteClassSelect" style="width:100%; padding:10px; border:1px solid #E5E7EB; border-radius:8px; margin-bottom:20px;">
+            ${classOptions}
+          </select>
+          <div class="confirm-buttons">
+            <button id="cancelDeleteClass"  class="confirm-cancel">Cancel</button>
+            <button id="confirmDeleteClass" class="confirm-ok">🗑 Delete All</button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
     document.body.appendChild(modal);
 
     modal.querySelector("#cancelDeleteClass").addEventListener("click", () => {
@@ -926,15 +1004,15 @@ if (deleteByClassBtn) {
       const confirmModal = document.createElement("div");
       confirmModal.className = "confirm-overlay active";
       confirmModal.innerHTML = `
-        <div class="confirm-modal">
-          <h3>Delete Class ${selectedClass}?</h3>
-          <p>This will delete <strong>${deleteCount}</strong> students permanently.</p>
-          <div class="confirm-buttons">
-            <button id="cancelFinal"  class="confirm-cancel">Cancel</button>
-            <button id="confirmFinal" class="confirm-ok">🗑 Yes, Delete</button>
+          <div class="confirm-modal">
+            <h3>Delete Class ${selectedClass}?</h3>
+            <p>This will delete <strong>${deleteCount}</strong> students permanently.</p>
+            <div class="confirm-buttons">
+              <button id="cancelFinal"  class="confirm-cancel">Cancel</button>
+              <button id="confirmFinal" class="confirm-ok">🗑 Yes, Delete</button>
+            </div>
           </div>
-        </div>
-      `;
+        `;
       document.body.appendChild(confirmModal);
 
       confirmModal.querySelector("#cancelFinal").addEventListener("click", () => {
@@ -955,7 +1033,7 @@ if (deleteByClassBtn) {
 
           currentPage = 1;
           updateCounter(students);
-          updateChart(students);
+
           updateClassFilter();
           updatePagination();
           updateDashboardStats(students);
@@ -974,34 +1052,50 @@ if (deleteByClassBtn) {
 // EVENT LISTENERS — buttons, inputs, navigation
 // ═══════════════════════════════════════════════════════════════════
 
+// ── Add Class ──
+if (addClassBtn) {
+  addClassBtn.addEventListener("click", () => {
+    const name = className.value.trim();
+    const section = classSection.value.trim();
+    const teacherId = parseInt(classTeacher.value);
+
+    if (!name || !section || isNaN(teacherId)) {
+      showToast("Please fill all fields!", "error");
+      return;
+    }
+
+    const newClass = new Class(Date.now(), name, section, teacherId);
+    classes.push(newClass);
+    saveClasses(classes);
+    renderClasses(classesContainer, classes, teachers, onDeleteClass, onEditClass);
+    updateClassTeacherDropdowns();
+
+    className.value = "";
+    classSection.value = "";
+    classTeacher.value = "";
+
+    showToast("Class added successfully!", "success");
+  });
+}
+
 // ── Add Student ──
+
 addBtn.addEventListener("click", () => {
   if (!validation(nameInput, emailInput, classInput, students)) return;
 
-  if (editingStudentId === null) {
-    const student = new Student(Date.now(), nameInput.value, emailInput.value, classInput.value, paymentInput.value);
-    students.push(student);
-    showToast("Student added successfully!", "success");
-  } else {
-    const studentToEdit = students.find(s => s.id === editingStudentId);
-    studentToEdit.name = nameInput.value;
-    studentToEdit.email = emailInput.value;
-    studentToEdit.studentClass = classInput.value;
-    studentToEdit.paymentStatus = paymentInput.value;
-    editingStudentId = null;
-    addBtn.textContent = "Add Student";
-    showToast("Student updated!", "info");
-  }
+  // ... code ...
 
   saveStudents(students);
   currentPage = Math.ceil(students.length / studentsPerPage);
   renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
   updateCounter(students);
-  updateChart(students);
   updateClassFilter();
   updateClassFilterGrades();
   updatePagination();
-  updateDashboardStats(students);
+  // ── UPDATE DASHBOARD ──
+  updateDashboardStats(students, courses, attendance);
+  updateDashboardCharts(students);
+  updateActivityFeed(students, students, attendance, courses);
   renderGradesPage(students, filterStudent);
 
   nameInput.value = "";
@@ -1018,7 +1112,7 @@ addTeacherBtn.addEventListener("click", () => {
   const email = teacherEmail.value.trim();
   const username = teacherUsername.value.trim();
   const password = teacherPassword.value.trim();
-  const classes = teacherClasses.value.trim().split(",").map(c => c.trim()).filter(c => c);  // ← NEW
+  const classes = teacherClasses.value.trim().split(",").map(c => c.trim()).filter(c => c);
   const department = teacherDepartment.value.trim();
   const contractStatus = teacherContractStatus.value;
   const courseWorkload = parseInt(teacherCourseWorkload.value) || 0;
@@ -1028,18 +1122,16 @@ addTeacherBtn.addEventListener("click", () => {
   }
 
   if (editingTeacherId === null) {
-    // New teacher
     const teacher = new Teacher(Date.now(), name, email, username, password, department, contractStatus, courseWorkload, classes);
     teachers.push(teacher);
     showToast("Teacher added successfully!", "success");
   } else {
-    // Update existing
     const t = teachers.find(t => t.id === editingTeacherId);
     t.name = name;
     t.email = email;
     t.username = username;
-    t.password = password;  // ← CAN CHANGE PASSWORD
-    t.classes = classes;  // ← NEW
+    t.password = password;
+    t.classes = classes;
     t.department = department;
     t.contractStatus = contractStatus;
     t.courseWorkload = courseWorkload;
@@ -1052,12 +1144,11 @@ addTeacherBtn.addEventListener("click", () => {
   renderTeachers(teachersContainer, teachers, onDeleteTeacher, onEditTeacher);
   updateCourseTeacherDropdown();
 
-  // Clear form
   teacherName.value = "";
   teacherEmail.value = "";
   teacherUsername.value = "";
   teacherPassword.value = "";
-  teacherClasses.value = "";  // ← NEW
+  teacherClasses.value = "";
   teacherDepartment.value = "";
   teacherContractStatus.value = "Permanent";
   teacherCourseWorkload.value = "";
@@ -1067,52 +1158,50 @@ addTeacherBtn.addEventListener("click", () => {
 classFilterGrades.addEventListener("change", () => {
   updateStudentFilterByClass();
   updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
-  updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
+  // updateGradesStats not called - elements don't exist in HTML
 });
 
 // ── Grades page: student filter ──
 filterStudent.addEventListener("change", () => {
   updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
-  updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
+  // updateGradesStats not called - elements don't exist in HTML
 });
 
 // ── Add Exam ──
 addExamBtn.addEventListener("click", () => {
   const name = examName.value.trim();
   const subject = examSubject.value.trim();
-  const examClassValue = examClass.value.trim();
+  const classId = parseInt(examClass.value);
   const date = examDate.value;
-  const time = examTime.value;  // ← CAPTURE TIME
+  const time = examTime.value;
   const totalMarks = Number(examTotalMarks.value);
 
-  if (!name || !subject || !examClassValue || !date || !time || isNaN(totalMarks) || totalMarks <= 0) {
+  if (!name || !subject || isNaN(classId) || !date || !time || isNaN(totalMarks) || totalMarks <= 0) {
     showToast("Please fill all fields correctly!", "error");
     return;
   }
 
   if (editingExamId === null) {
-    // NEW EXAM
     const exam = new Exam(
       Date.now(),
       name,
       subject,
-      examClassValue,
+      classId,
       date,
       totalMarks,
       Math.floor(totalMarks * 0.4),
-      time,  // ← ADD TIME HERE
+      time,
       localStorage.getItem("username")
     );
     exams.push(exam);
     showToast("Exam added successfully!", "success");
   } else {
-    // UPDATE EXAM
     const e = exams.find(e => e.id === editingExamId);
     e.name = name;
     e.subject = subject;
-    e.class = examClassValue;
+    e.classId = classId;
     e.date = date;
-    e.time = time;  // ← ADD TIME HERE
+    e.time = time;
     e.totalMarks = totalMarks;
     e.passingScore = Math.floor(totalMarks * 0.4);
     editingExamId = null;
@@ -1123,14 +1212,14 @@ addExamBtn.addEventListener("click", () => {
   saveExams(exams);
   renderExams(examsContainer, exams, onDeleteExam, onEditExam);
 
-  // CLEAR FORM
   examName.value = "";
   examSubject.value = "";
   examClass.value = "";
   examDate.value = "";
-  examTime.value = "";  // ← CLEAR TIME
+  examTime.value = "";
   examTotalMarks.value = "";
 });
+
 // ── Add Attendance ──
 addAttendanceBtn.addEventListener("click", () => {
   const studentId = attendanceStudent.value;
@@ -1142,8 +1231,11 @@ addAttendanceBtn.addEventListener("click", () => {
     showToast("Please fill all fields!", "error"); return;
   }
 
+  const student = students.find(s => s.id === parseInt(studentId));
+  const classId = student ? (student.classId || 1) : 1;
+
   if (editingAttendanceId === null) {
-    const record = new Attendance(Date.now(), parseInt(studentId), date, status, subject);
+    const record = new Attendance(Date.now(), parseInt(studentId), classId, date, status, subject);
     attendance.push(record);
     showToast("Attendance marked!", "success");
   } else {
@@ -1158,7 +1250,8 @@ addAttendanceBtn.addEventListener("click", () => {
 
   saveAttendance(attendance);
   renderAttendanceRecords(studentId);
-
+  updateDashboardStats(students, courses, attendance);  
+  updateActivityFeed(students, students, attendance, courses);
   attendanceDate.value = "";
   attendanceSubject.value = "";
   attendanceStatus.value = "Present";
@@ -1222,9 +1315,10 @@ addGradeBtn.addEventListener("click", () => {
   saveStudents(students);
 
   updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
-  updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
-  updateDashboardStats(students);
-
+  
+  updateDashboardStats(students, courses, attendance);  // ← ADD THIS
+  updateDashboardCharts(students);                       // ← ADD THIS
+  updateActivityFeed(students, students, attendance, courses);
   gradeSubject.value = "";
   gradeScore.value = "";
   showToast("Grade added successfully!", "success");
@@ -1246,12 +1340,9 @@ document.addEventListener("click", async (e) => {
 
   saveStudents(students);
   updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
-  updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
   updateDashboardStats(students);
   showToast("Grade deleted!", "error");
 });
-
-
 
 // ── Courses page: open enrollment modal ──
 document.addEventListener("click", (e) => {
@@ -1267,7 +1358,6 @@ attendanceStudent.addEventListener("change", () => {
     renderAttendanceRecords(attendanceStudent.value);
   } else {
     attendanceContainer.innerHTML = "";
-    overallAttendance.textContent = "0%";
   }
 });
 
@@ -1282,7 +1372,7 @@ sortBtn.addEventListener("click", () => {
   saveStudents(students);
   renderStudents(studentsContainer, getPageStudents(), onDelete, onEdit, onAddGrade, onRowClick);
   updateCounter(students);
-  updateChart(students);
+
   updateClassFilter();
   updatePagination();
   showToast("Sorted by name!", "info");
@@ -1349,16 +1439,173 @@ document.querySelector("#closeModal").addEventListener("click", () => {
   document.querySelector("#modalOverlay").classList.remove("active");
 });
 // ═══════════════════════════════════════════════════════════════════
+// ATTENDANCE — EDIT MODAL (Add to app.js)
+// ═══════════════════════════════════════════════════════════════════
+
+// Store editing attendance info
+let editingAttendanceInfo = {
+  attendanceId: null,
+  studentId: null
+};
+
+// ── Open edit attendance modal ──
+document.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("editAttendanceBtn")) return;
+
+  const attendanceId = parseInt(e.target.dataset.id);
+  const studentId = parseInt(e.target.dataset.studentId);
+  const studentName = e.target.dataset.studentName;
+  const date = e.target.dataset.date;
+  const subject = e.target.dataset.subject;
+  const status = e.target.dataset.status;
+
+  editingAttendanceInfo.attendanceId = attendanceId;
+  editingAttendanceInfo.studentId = studentId;
+
+  document.querySelector("#editAttendanceStudent").value = studentName;
+  document.querySelector("#editAttendanceDate").value = date;
+  document.querySelector("#editAttendanceSubject").value = subject;
+  document.querySelector("#editAttendanceStatus").value = status;
+
+  document.querySelector("#editAttendanceModalOverlay").classList.add("active");
+  document.querySelector("#editAttendanceDate").focus();
+});
+
+// ── Save edited attendance ──
+document.querySelector("#editAttendanceSaveBtn").addEventListener("click", () => {
+  const { attendanceId, studentId } = editingAttendanceInfo;
+  const newDate = document.querySelector("#editAttendanceDate").value;
+  const newSubject = document.querySelector("#editAttendanceSubject").value.trim();
+  const newStatus = document.querySelector("#editAttendanceStatus").value;
+
+  // Validation
+  if (!newDate || !newSubject || !newStatus) {
+    showToast("Please fill all fields!", "error");
+    return;
+  }
+
+  // Find and update attendance record
+  const attendanceRecord = attendance.find(a => a.id === attendanceId);
+  if (!attendanceRecord) {
+    showToast("Attendance record not found!", "error");
+    return;
+  }
+
+  const oldStatus = attendanceRecord.status;
+  attendanceRecord.date = newDate;
+  attendanceRecord.subject = newSubject;
+  attendanceRecord.status = newStatus;
+
+  saveAttendance(attendance);
+  renderAttendanceRecords(studentId);
+
+  document.querySelector("#editAttendanceModalOverlay").classList.remove("active");
+  showToast(`Attendance updated: ${oldStatus} → ${newStatus}`, "success");
+});
+
+// ── Cancel edit attendance ──
+document.querySelector("#editAttendanceCancelBtn").addEventListener("click", () => {
+  document.querySelector("#editAttendanceModalOverlay").classList.remove("active");
+});
+
+// ── Close when clicking outside ──
+document.querySelector("#editAttendanceModalOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "editAttendanceModalOverlay") {
+    document.querySelector("#editAttendanceModalOverlay").classList.remove("active");
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════
+// COURSES — EDIT MODAL (Add to app.js)
+// ═══════════════════════════════════════════════════════════════════
+
+// Store editing course info
+let editingCourseInfo = {
+  courseId: null
+};
+
+// ── Open edit course modal ──
+document.addEventListener("click", (e) => {
+  if (!e.target.classList.contains("editCourseBtn")) return;
+
+  const courseId = parseInt(e.target.dataset.id);
+  const course = courses.find(c => c.id === courseId);
+
+  if (!course) {
+    showToast("Course not found!", "error");
+    return;
+  }
+
+  editingCourseInfo.courseId = courseId;
+
+  document.querySelector("#editCourseName").value = course.name;
+  document.querySelector("#editCourseCode").value = course.code;
+  document.querySelector("#editCourseDescription").value = course.description;
+  document.querySelector("#editCourseCredits").value = course.credits;
+  document.querySelector("#editCourseSemester").value = course.semester;
+  document.querySelector("#editCourseTeacher").value = course.teacher;
+
+  document.querySelector("#editCourseModalOverlay").classList.add("active");
+  document.querySelector("#editCourseName").focus();
+});
+
+// ── Save edited course ──
+document.querySelector("#editCourseSaveBtn").addEventListener("click", () => {
+  const { courseId } = editingCourseInfo;
+  const name = document.querySelector("#editCourseName").value.trim();
+  const code = document.querySelector("#editCourseCode").value.trim();
+  const description = document.querySelector("#editCourseDescription").value.trim();
+  const credits = parseInt(document.querySelector("#editCourseCredits").value);
+  const semester = document.querySelector("#editCourseSemester").value.trim();
+  const teacherId = parseInt(document.querySelector("#editCourseTeacher").value);
+
+  // Validation
+  if (!name || !code || !description || isNaN(credits) || !semester || isNaN(teacherId)) {
+    showToast("Please fill all fields correctly!", "error");
+    return;
+  }
+
+  // Find and update course
+  const course = courses.find(c => c.id === courseId);
+  if (!course) {
+    showToast("Course not found!", "error");
+    return;
+  }
+
+  course.name = name;
+  course.code = code;
+  course.description = description;
+  course.credits = credits;
+  course.semester = semester;
+  course.teacher = teacherId;
+
+  saveCourses(courses);
+  renderCourses(coursesContainer, courses, teachers, onDeleteCourse, onEditCourse);
+
+  document.querySelector("#editCourseModalOverlay").classList.remove("active");
+  showToast("Course updated successfully!", "success");
+});
+
+// ── Cancel edit course ──
+document.querySelector("#editCourseCancelBtn").addEventListener("click", () => {
+  document.querySelector("#editCourseModalOverlay").classList.remove("active");
+});
+
+// ── Close when clicking outside ──
+document.querySelector("#editCourseModalOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "editCourseModalOverlay") {
+    document.querySelector("#editCourseModalOverlay").classList.remove("active");
+  }
+});
+// ═══════════════════════════════════════════════════════════════════
 // EDIT GRADE MODAL — handle editing grades
 // ═══════════════════════════════════════════════════════════════════
 
-// Store current editing grade info
 let editingGradeInfo = {
   studentId: null,
   gradeIndex: null
 };
 
-// ── Open edit grade modal ──
 document.addEventListener("click", (e) => {
   if (!e.target.classList.contains("editGradeBtn")) return;
 
@@ -1368,75 +1615,62 @@ document.addEventListener("click", (e) => {
   const subject = e.target.dataset.subject;
   const score = e.target.dataset.score;
 
-  // Store for later use
   editingGradeInfo.studentId = studentId;
   editingGradeInfo.gradeIndex = gradeIndex;
 
-  // Fill modal with current data
   document.querySelector("#editGradeStudent").value = studentName;
   document.querySelector("#editGradeSubject").value = subject;
   document.querySelector("#editGradeScore").value = score;
 
-  // Show modal
   document.querySelector("#editGradeModalOverlay").classList.add("active");
 
-  // Focus on score input (ready to edit)
   document.querySelector("#editGradeScore").focus();
   document.querySelector("#editGradeScore").select();
 });
 
-// ── Save edited grade ──
 document.querySelector("#editGradeSaveBtn").addEventListener("click", () => {
   const { studentId, gradeIndex } = editingGradeInfo;
   const newScore = parseInt(document.querySelector("#editGradeScore").value);
   const newSubject = document.querySelector("#editGradeSubject").value.trim();
 
-  // Validation
   if (!newSubject) { showToast("Subject cannot be empty!", "error"); return; }
   if (isNaN(newScore) || newScore < 0 || newScore > 100) {
     showToast("Score must be between 0-100!", "error");
     return;
   }
 
-  // Find student and update grade
   const student = students.find(s => s.id === studentId);
   if (!student || !student.grades[gradeIndex]) {
     showToast("Grade not found!", "error");
     return;
   }
 
-  // Update both subject and score
   const oldSubject = student.grades[gradeIndex].subject;
   const oldScore = student.grades[gradeIndex].score;
 
   student.grades[gradeIndex].subject = newSubject;
   student.grades[gradeIndex].score = newScore;
 
-  // Save to localStorage
   saveStudents(students);
 
-  // Refresh table
   updateGradesTable(students, classFilterGrades, filterStudent, gradesTableBody);
-  updateGradesStats(students, filterStudent, avgGrade, highestGrade, lowestGrade);
   updateDashboardStats(students);
 
-  // Close modal
   document.querySelector("#editGradeModalOverlay").classList.remove("active");
 
-  // Show success message
   showToast(`Grade updated: ${oldSubject} (${oldScore}) → ${newSubject} (${newScore})`, "success");
 });
-// ── Cancel edit ──
+
 document.querySelector("#editGradeCancelBtn").addEventListener("click", () => {
   document.querySelector("#editGradeModalOverlay").classList.remove("active");
 });
 
-// ── Close when clicking outside modal ──
 document.querySelector("#editGradeModalOverlay").addEventListener("click", (e) => {
   if (e.target.id === "editGradeModalOverlay") {
     document.querySelector("#editGradeModalOverlay").classList.remove("active");
   }
 });
+
 // ── Sidebar navigation ──
 document.querySelectorAll(".nav-item").forEach(item => {
   item.addEventListener("click", (e) => {
@@ -1447,3 +1681,4 @@ document.querySelectorAll(".nav-item").forEach(item => {
     document.querySelector(`#section-${item.dataset.section}`).classList.add("active");
   });
 });
+
