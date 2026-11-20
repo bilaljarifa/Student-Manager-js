@@ -1,5 +1,7 @@
 <?php
-session_start();
+require_once 'includes/portal.php';
+startPortalSession();
+requirePostToken();
+$_SESSION = [];
 session_destroy();
-header("Location: login.php");
-exit;
+redirectTo('login.php');

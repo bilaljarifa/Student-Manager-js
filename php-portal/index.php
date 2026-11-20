@@ -1,17 +1,22 @@
 <?php
 require_once 'includes/portal.php';
-requirePortalRole('teacher');
+if (parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) === '/') {
+    requirePortalRole('teacher', 'admin', 'student');
+    redirectTo(homePage($_SESSION['role']));
+}
+requirePortalRole('teacher', 'admin');
 
 require_once 'config/Database.php';
 require_once 'models/Student.php';
 require_once 'models/ClassModel.php';
 
-$db = (new Database())->connect();
+$db = portalDb();
 $searchInput = filter_input(INPUT_GET, 'q');
 $search = is_string($searchInput) ? trim($searchInput) : '';
 $classId = positiveId(INPUT_GET, 'class_id');
-$classes = (new ClassModel($db))->getAll()->fetchAll(PDO::FETCH_ASSOC);
-$students = (new Student($db))->getAll($search, $classId)->fetchAll(PDO::FETCH_ASSOC);
+$classes = staffClasses($db);
+if ($classId) { requireClass($db, $classId); }
+$students = (new Student($db))->getAll($search, $classId, classScope('s.class_id'))->fetchAll(PDO::FETCH_ASSOC);
 $filtering = $search !== '' || $classId !== null;
 $pageTitle = 'Students';
 require 'includes/layout.php';
@@ -21,7 +26,7 @@ require 'includes/layout.php';
         <h1>Manage Students</h1>
         <p>Find student records and update class assignments.</p>
     </div>
-    <a href="create.php" class="btn btn-primary">Add student</a>
+    <?php if (isAdmin()): ?><a href="create.php" class="btn btn-primary">Add student</a><?php endif; ?>
 </header>
 
 <section class="card" aria-labelledby="student-directory">
@@ -67,13 +72,15 @@ require 'includes/layout.php';
                             <td><?= h($student['age'] ?? '—') ?></td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="edit.php?id=<?= (int) $student['id'] ?>" class="btn btn-sm btn-secondary">Edit</a>
+                                    <?php if (isAdmin()): ?><a href="edit.php?id=<?= (int) $student['id'] ?>" class="btn btn-sm btn-secondary">Edit</a><?php endif; ?>
                                     <a href="grades.php?student_id=<?= (int) $student['id'] ?>" class="btn btn-sm btn-secondary">Grades</a>
+                                    <?php if (isAdmin()): ?>
                                     <form action="delete.php" method="post" onsubmit="return confirm('Delete this student record?');">
                                         <input type="hidden" name="csrf_token" value="<?= h(csrfToken()) ?>">
                                         <input type="hidden" name="id" value="<?= (int) $student['id'] ?>">
                                         <button class="btn btn-sm btn-danger" type="submit">Delete</button>
                                     </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

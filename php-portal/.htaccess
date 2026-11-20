@@ -1,0 +1,6 @@
+
+Options -Indexes
+RewriteEngine On
+RewriteRule ^(?:config|database|includes|models|scripts|storage|uploads)(?:/|$) - [F,L,NC]
+RewriteRule ^(?:test_connection|test_students|router)\.php$ - [R=404,L,NC]
+RewriteRule (^|/)\. - [F,L]

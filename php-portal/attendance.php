@@ -1,11 +1,12 @@
 <?php
 require_once 'includes/portal.php';
-requirePortalRole('teacher');
+requirePortalRole('teacher', 'admin');
 
 require_once 'config/Database.php';
 require_once 'models/AttendanceModel.php';
 
-$model = new AttendanceModel((new Database())->connect());
+$db = portalDb();
+$model = new AttendanceModel($db);
 $classes = $model->getClasses();
 $classesById = array_column($classes, null, 'id');
 $isPost = $_SERVER['REQUEST_METHOD'] === 'POST';
@@ -19,18 +20,20 @@ if (!$isPost && !filter_has_var(INPUT_GET, 'class_id')) {
     $classId = isset($classes[0]) ? (int) $classes[0]['id'] : null;
 }
 $class = $classesById[$classId] ?? null;
+if ($classId && !$class) { requireClass($db, $classId); }
 $dateInput = filter_input($source, 'date');
 $date = $dateInput === null && !$isPost ? date('Y-m-d') : (is_string($dateInput) ? $dateInput : '');
 $parsedDate = preg_match('/^[1-9]\d{3}-\d{2}-\d{2}$/D', $date)
     ? DateTimeImmutable::createFromFormat('!Y-m-d', $date)
     : false;
-$validDate = $parsedDate && $parsedDate->format('Y-m-d') === $date;
+$validDate = $parsedDate && $parsedDate->format('Y-m-d') === $date
+    && (!$class || ($date >= $class['starts_on'] && $date <= $class['ends_on']));
 $statuses = AttendanceModel::STATUSES;
 $error = '';
 $submitted = [];
 
 if ($classes && (!$class || !$validDate)) {
-    $error = 'Choose an existing class and a valid date.';
+    $error = 'Choose an existing class and a date within its term.';
 }
 
 if ($isPost && $class && $validDate) {
@@ -75,7 +78,7 @@ require 'includes/layout.php';
                     <option value="">Select a class</option>
                     <?php foreach ($classes as $option): ?>
                         <option value="<?= (int) $option['id'] ?>"<?= $classId === (int) $option['id'] ? ' selected' : '' ?>>
-                            <?= h($option['name']) ?>
+                            <?= h($option['name'] . ' · ' . $option['term_name']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

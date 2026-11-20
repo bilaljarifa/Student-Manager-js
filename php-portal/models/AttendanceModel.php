@@ -11,9 +11,10 @@ class AttendanceModel
     public function getClasses(): array
     {
         return $this->db->query(
-            'SELECT c.id, c.name, c.room
+            'SELECT c.id, c.name, c.room, t.name AS term_name, t.starts_on, t.ends_on
              FROM classes c LEFT JOIN students s ON s.class_id = c.id
-             GROUP BY c.id, c.name, c.room
+             JOIN terms t ON t.id = c.term_id WHERE ' . classScope('c.id') . '
+             GROUP BY c.id, c.name, c.room, t.name, t.starts_on, t.ends_on
              ORDER BY COUNT(s.id) DESC, c.name, c.id'
         )->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -24,10 +25,14 @@ class AttendanceModel
                 FROM students s
                 LEFT JOIN attendance a ON a.student_id = s.id AND a.class_id = :recorded_class
                     AND a.attendance_date = :attendance_date
-                WHERE s.class_id = :enrolled_class OR a.student_id IS NOT NULL
+                WHERE a.student_id IS NOT NULL OR EXISTS (
+                    SELECT 1 FROM enrollments r WHERE r.student_id = s.id AND r.class_id = :enrolled_class
+                    AND r.starts_on <= :enrolled_date AND (r.ends_on IS NULL OR r.ends_on > :end_date)
+                )
                 ORDER BY s.last_name, s.name, s.id';
         $stmt = $this->db->prepare($sql . ($lock ? ' FOR UPDATE' : ''));
-        $stmt->execute(['recorded_class' => $classId, 'attendance_date' => $date, 'enrolled_class' => $classId]);
+        $stmt->execute(['recorded_class' => $classId, 'attendance_date' => $date, 'enrolled_class' => $classId,
+            'enrolled_date' => $date, 'end_date' => $date]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
@@ -42,7 +47,7 @@ class AttendanceModel
     {
         $this->db->beginTransaction();
         try {
-            $class = $this->db->prepare('SELECT id FROM classes WHERE id = ? FOR UPDATE');
+            $class = $this->db->prepare('SELECT id FROM classes WHERE id = ? AND ' . classScope('classes.id') . ' FOR UPDATE');
             $class->execute([$classId]);
             if (!$class->fetchColumn()) {
                 $this->db->rollBack();
@@ -68,6 +73,8 @@ class AttendanceModel
             foreach ($statuses as $studentId => $status) {
                 if ($status !== $existing[$studentId]) {
                     $save->execute([$classId, $date, $studentId, $status, $status]);
+                    auditEvent($this->db, $existing[$studentId] === null ? 'recorded' : 'corrected', 'attendance', $studentId, $classId,
+                        ['date' => $date, 'before' => $existing[$studentId], 'after' => $status, 'student_id' => $studentId]);
                 }
             }
             $this->db->commit();

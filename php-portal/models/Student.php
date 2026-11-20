@@ -9,10 +9,10 @@ class Student
         $this->conn = $db;
     }
 
-    public function getAll(string $search = '', ?int $classId = null)
+    public function getAll(string $search = '', ?int $classId = null, ?string $scope = null)
     {
         $sql = 'SELECT s.*, c.name AS class_name FROM students s LEFT JOIN classes c ON s.class_id = c.id';
-        $conditions = [];
+        $conditions = $scope ? [$scope] : [];
         $params = [];
 
         if ($search !== '') {
@@ -78,11 +78,14 @@ class Student
     public function getStudentWithClass($userId)
     {
         $stmt = $this->conn->prepare(
-            'SELECT s.*, c.name AS class_name, c.room
-             FROM students s LEFT JOIN classes c ON s.class_id = c.id
-             WHERE s.user_id = :user_id LIMIT 1'
+            'SELECT s.*, c.id AS class_id, c.name AS class_name, c.room
+             FROM students s LEFT JOIN enrollments e ON e.student_id = s.id
+                 AND e.starts_on <= ? AND (e.ends_on IS NULL OR e.ends_on > ?)
+             LEFT JOIN classes c ON e.class_id = c.id
+             WHERE s.user_id = ? ORDER BY e.starts_on DESC, e.id DESC LIMIT 1'
         );
-        $stmt->execute(['user_id' => $userId]);
+        $today = date('Y-m-d');
+        $stmt->execute([$today, $today, $userId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 }

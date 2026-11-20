@@ -31,13 +31,13 @@ h1, h2, p { margin: 0; }
 p { color: var(--muted); }
 
 h1 {
-    font: 400 clamp(2.4rem, 4.2vw, 3.65rem)/1.04 var(--display);
-    letter-spacing: -0.045em;
+    font: 400 clamp(1.75rem, 2.9vw, 2.375rem)/1.12 var(--display);
+    letter-spacing: -0.035em;
     overflow-wrap: anywhere;
 }
 
 h2 {
-    font: 400 1.55rem/1.15 var(--display);
+    font: 400 1.3125rem/1.2 var(--display);
     letter-spacing: -0.025em;
     overflow-wrap: anywhere;
 }
@@ -135,6 +135,30 @@ h2 {
 
 .sign-out { margin-top: auto; border: 1px solid var(--line); }
 .sidebar .navigation { margin-bottom: 24px; }
+.account-nav { margin-top: auto; display: grid; gap: 5px; }
+.account-nav .sign-out { width: 100%; background: var(--surface); }
+.account-nav .sign-out:hover { background: var(--accent-soft); }
+.section-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.section-tabs a { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; text-decoration: none; font-weight: 650; }
+.section-tabs a[aria-current="page"] { background: var(--accent-soft); border-color: var(--accent); }
+.section-spaced { margin-top: 18px; }
+.school-list { margin: 0; padding: 0 21px 15px 35px; }
+.school-list li + li { margin-top: 8px; }
+.form-control:is(textarea) { resize: vertical; min-height: 100px; font: inherit; }
+.announcement { padding: 17px 21px; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.announcement h3 { margin: 0; font-size: 1rem; }
+.announcement p, .announcement form { margin-top: 10px; }
+.gradebook-weights, .gradebook-pager {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 0 21px 15px;
+    color: var(--muted);
+    font-size: 0.85rem;
+}
+.gradebook-weights span { padding: 4px 8px; border-radius: 6px; background: var(--accent-soft); }
+.gradebook-weights strong { margin-left: 4px; color: var(--text); }
+.gradebook-pager { justify-content: flex-end; padding-top: 12px; border-top: 1px solid var(--line); }
 
 .topbar {
     display: flex;
@@ -194,11 +218,11 @@ h2 {
     padding: clamp(26px, 4vw, 52px);
 }
 
-.hero h1 { font-size: clamp(2.45rem, 4.75vw, 4.1rem); }
+.hero h1 { font-size: clamp(2rem, 3.4vw, 2.75rem); }
 .hero p { max-width: 32ch; margin-top: 12px; color: #d9e6da; }
 
 .hero-image, .auth-image {
-    background: #a78760 url("campus.jpg") center / cover no-repeat;
+    background: #a78760 url("campus.jpg?v=1") center / cover no-repeat;
 }
 
 .hero-image { background-position: 60% center; }
@@ -233,8 +257,8 @@ h2 {
 a.stat { padding-right: 27px; }
 a.stat::after { position: absolute; right: 12px; bottom: 16px; content: "↗"; color: var(--accent); }
 a.stat:hover { border-color: #95ae9d; background: #fbfcf6; }
-.stat strong { color: var(--text); font: 400 1.65rem/1.12 var(--display); overflow-wrap: anywhere; }
-.stat strong.stat-number { font-size: 2.35rem; letter-spacing: -0.055em; font-variant-numeric: tabular-nums; }
+.stat strong { color: var(--text); font: 400 1.375rem/1.15 var(--display); overflow-wrap: anywhere; }
+.stat strong.stat-number { font-size: 1.75rem; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
 
 .panels {
     display: grid;
@@ -448,7 +472,7 @@ a.stat:hover { border-color: #95ae9d; background: #fbfcf6; }
 }
 
 .auth-copy { width: 100%; max-width: 385px; margin: auto 0; }
-.auth-copy h1 { font-size: clamp(3rem, 5vw, 4.4rem); }
+.auth-copy h1 { font-size: clamp(2.125rem, 3.5vw, 2.875rem); }
 .auth-copy > p { margin-top: 10px; }
 .auth-form { display: grid; gap: 15px; margin-top: 24px; }
 .auth-form .btn { margin-top: 4px; justify-content: space-between; }
@@ -474,6 +498,9 @@ a.stat:hover { border-color: #95ae9d; background: #fbfcf6; }
     }
     .sidebar > .brand, .sidebar .navigation { margin: 0; }
     .sidebar .sign-out { grid-column: 2; grid-row: 1; margin: 0; }
+    .sidebar .account-nav { grid-column: 2; grid-row: 1; margin: 0; display: flex; flex-wrap: wrap; justify-content: flex-end; }
+    .account-nav .nav-link { font-size: 0.75rem; padding-inline: 5px; }
+    .account-nav .sign-out { min-height: 36px; padding: 5px 8px; font-size: 0.75rem; }
     .navigation { grid-column: 1 / -1; display: flex; flex-wrap: wrap; }
     .nav-link { min-height: 36px; padding: 6px 10px; }
     .topbar { min-height: 0; padding-block: 10px; }
@@ -497,4 +524,13 @@ a.stat:hover { border-color: #95ae9d; background: #fbfcf6; }
 @media (max-width: 360px) {
     .attendance-choice { min-width: 65px; }
     .attendance-actions { justify-content: flex-start; }
+}
+
+@media print {
+    :root { color-scheme: light; --surface: #fff; --canvas: #fff; }
+    .portal { display: block; }
+    .sidebar, .topbar, .skip-link, .no-print { display: none; }
+    .content { max-width: none; padding: 0; }
+    .table-responsive { overflow: visible; }
+    .table tr { break-inside: avoid; }
 }

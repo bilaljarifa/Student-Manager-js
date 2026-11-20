@@ -1,6 +1,6 @@
 <?php
 require_once 'includes/portal.php';
-requirePortalRole('teacher');
+requirePortalRole('admin');
 requirePostToken();
 
 require_once 'config/Database.php';
@@ -11,7 +11,7 @@ $deleted = $id && (new Student((new Database())->connect()))->delete($id);
 if ($deleted) {
     portalNotice('Student deleted.');
 } else {
-    portalNotice('Student could not be deleted. Check for recorded grades or attendance.', true);
+    portalNotice('Student could not be deleted. Check for enrollment, grades, or attendance history.', true);
 }
 header('Location: index.php', true, 303);
 exit;

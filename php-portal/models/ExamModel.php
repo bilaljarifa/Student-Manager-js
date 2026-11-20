@@ -11,11 +11,12 @@ class ExamModel
     }
 
     // Get all exams with class name
-    public function getAll()
+    public function getAll(?string $scope = null)
     {
         $sql = "SELECT e.*, c.name AS class_name
                 FROM exams e
                 LEFT JOIN classes c ON e.class_id = c.id
+                " . ($scope ? "WHERE $scope" : '') . "
                 ORDER BY e.exam_date DESC, e.exam_time DESC, e.id DESC";
 
         $stmt = $this->conn->prepare($sql);
@@ -23,13 +24,13 @@ class ExamModel
         return $stmt;
     }
 
-    public function getUpcoming(string $now)
+    public function getUpcoming(string $now, string $scope)
     {
         $stmt = $this->conn->prepare(
             "SELECT e.*, c.name AS class_name
              FROM exams e
              LEFT JOIN classes c ON e.class_id = c.id
-             WHERE TIMESTAMP(e.exam_date, e.exam_time) >= :now
+             WHERE TIMESTAMP(e.exam_date, e.exam_time) >= :now AND $scope
              ORDER BY e.exam_date, e.exam_time, e.id
              LIMIT 5"
         );
@@ -38,16 +39,17 @@ class ExamModel
     }
 
     // Create exam
-    public function create($class_id, $subject, $exam_date, $exam_time)
+    public function create($class_id, $subject, $exam_date, $exam_time, int $subjectId)
     {
-        $sql = "INSERT INTO exams (class_id, subject, exam_date, exam_time)
-                VALUES (:class_id, :subject, :exam_date, :exam_time)";
+        $sql = "INSERT INTO exams (class_id, subject, exam_date, exam_time, subject_id)
+                VALUES (:class_id, :subject, :exam_date, :exam_time, :subject_id)";
 
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(":class_id", $class_id);
         $stmt->bindParam(":subject", $subject);
         $stmt->bindParam(":exam_date", $exam_date);
         $stmt->bindParam(":exam_time", $exam_time);
+        $stmt->bindValue(":subject_id", $subjectId, PDO::PARAM_INT);
 
         return $stmt->execute();
     }

@@ -5,17 +5,17 @@ requirePortalRole('teacher');
 require_once 'config/Database.php';
 require_once 'models/ExamModel.php';
 
-$db = (new Database())->connect();
+$db = portalDb();
 $now = date('Y-m-d H:i:s');
 $totalsQuery = $db->prepare(
-    "SELECT (SELECT COUNT(*) FROM students) AS students,
-            (SELECT COUNT(*) FROM classes) AS classes,
-            (SELECT COUNT(*) FROM exams WHERE TIMESTAMP(exam_date, exam_time) >= :now) AS exams,
-            (SELECT COUNT(*) FROM courses) AS courses"
+    "SELECT (SELECT COUNT(*) FROM students s WHERE " . classScope('s.class_id') . ") AS students,
+            (SELECT COUNT(*) FROM classes c WHERE " . classScope('c.id') . ") AS classes,
+            (SELECT COUNT(*) FROM exams e WHERE TIMESTAMP(exam_date, exam_time) >= :now AND " . classScope('e.class_id') . ") AS exams,
+            (SELECT COUNT(*) FROM courses co WHERE " . classScope('co.class_id') . ") AS courses"
 );
 $totalsQuery->execute(['now' => $now]);
 $totals = $totalsQuery->fetch(PDO::FETCH_ASSOC);
-$exams = (new ExamModel($db))->getUpcoming($now)->fetchAll(PDO::FETCH_ASSOC);
+$exams = (new ExamModel($db))->getUpcoming($now, classScope('e.class_id'))->fetchAll(PDO::FETCH_ASSOC);
 $stats = [
     ['Students', $totals['students'], 'index.php'],
     ['Classes', $totals['classes'], 'classes.php'],
@@ -32,7 +32,7 @@ require 'includes/layout.php';
         <p>Take attendance and keep track of your classes and exams.</p>
         <div class="hero-actions">
             <a class="btn btn-hero" href="attendance.php">Take attendance <span aria-hidden="true">↗</span></a>
-            <a class="btn btn-hero-outline" href="create.php">Add student</a>
+            <a class="btn btn-hero-outline" href="reports.php">View reports</a>
         </div>
     </div>
     <div class="hero-image" aria-hidden="true"></div>
@@ -79,10 +79,10 @@ require 'includes/layout.php';
     <section class="card" aria-labelledby="quick-actions">
         <div class="panel-heading"><h2 id="quick-actions">Quick actions</h2></div>
         <ul class="quick-links">
-            <li><a href="classes.php#add-class">Add a class <span aria-hidden="true">→</span></a></li>
+            <li><a href="class_updates.php">Timetable and announcements <span aria-hidden="true">→</span></a></li>
             <li><a href="exams.php#add-exam">Schedule an exam <span aria-hidden="true">→</span></a></li>
             <li><a href="courses.php#upload-course">Upload course material <span aria-hidden="true">→</span></a></li>
-            <li><a href="grades.php">Record a grade <span aria-hidden="true">→</span></a></li>
+            <li><a href="gradebook.php">Open gradebook <span aria-hidden="true">→</span></a></li>
         </ul>
     </section>
 </div>

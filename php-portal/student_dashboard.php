@@ -28,6 +28,7 @@ require 'includes/layout.php';
         <p><?= $student ? 'Welcome, ' . h($student['name']) . '.' : 'Check your exams, course materials, and grades here.' ?></p>
         <div class="hero-actions">
             <a class="btn btn-hero" href="student_attendance.php">View attendance <span aria-hidden="true">↗</span></a>
+            <a class="btn btn-hero-outline" href="gradebook.php">Published report cards</a>
         </div>
     </div>
     <div class="hero-image" aria-hidden="true"></div>
@@ -72,14 +73,14 @@ require 'includes/layout.php';
             <?php endif; ?>
         </section>
         <section class="card" aria-labelledby="grades">
-            <div class="panel-heading"><h2 id="grades">Your grades</h2></div>
+            <div class="panel-heading"><h2 id="grades">Quick grades</h2></div>
             <?php if ($grades): ?>
                 <div class="table-responsive">
                     <table class="table" aria-labelledby="grades">
                         <thead><tr><th scope="col">Subject</th><th scope="col">Grade</th></tr></thead>
                         <tbody>
                             <?php foreach ($grades as $grade): ?>
-                                <tr><td class="person-name"><?= h($grade['subject']) ?></td><td><?= h($grade['grade']) ?></td></tr>
+                                <tr><td class="person-name"><?= h($grade['subject']) ?><span class="cell-detail"><?= h($grade['term_name'] ?? 'Imported record') ?></span></td><td><?= h($grade['grade']) ?></td></tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -95,7 +96,7 @@ require 'includes/layout.php';
         <?php if ($courses): ?>
             <ul class="quick-links">
                 <?php foreach ($courses as $course): ?>
-                    <li><a href="<?= h(courseFileUrl($course['file_path'])) ?>"><?= h($course['title']) ?> <span>PDF</span></a></li>
+                    <li><a href="<?= h(courseFileUrl($course['id'])) ?>"><?= h($course['title']) ?> <span>PDF</span></a></li>
                 <?php endforeach; ?>
             </ul>
         <?php else: ?>

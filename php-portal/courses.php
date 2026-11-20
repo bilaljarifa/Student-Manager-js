@@ -1,13 +1,12 @@
 <?php
 require_once 'includes/portal.php';
-requirePortalRole('teacher');
+requirePortalRole('teacher', 'admin');
 
 require_once 'config/Database.php';
 require_once 'models/ClassModel.php';
 require_once 'models/CourseModel.php';
 
-$db = (new Database())->connect();
-$classModel = new ClassModel($db);
+$db = portalDb();
 $courseModel = new CourseModel($db);
 $classId = null;
 $title = '';
@@ -17,8 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     requirePostToken();
     if (isset($_POST['delete_id'])) {
         $id = positiveId(INPUT_POST, 'delete_id');
-        if ($id) {
-            $courseModel->delete($id);
+        if ($id && ($existing = portalRow($db, 'SELECT class_id FROM courses WHERE id = ?', [$id]))) {
+            portalTransaction($db, function () use ($db, $existing, $id, $courseModel) {
+                requireClass($db, (int) $existing['class_id']);
+                $courseModel->delete($id);
+            });
             portalNotice('Course material removed.');
         }
         header('Location: courses.php', true, 303);
@@ -28,30 +30,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $classId = positiveId(INPUT_POST, 'class_id');
     $title = postText('title');
     $pdf = $_FILES['pdf_file'] ?? null;
-    if (!$classId || !$classModel->exists($classId) || $title === '' || mb_strlen($title) > 255) {
-        $error = 'Select an existing class and enter a title of up to 255 characters.';
-    } elseif (($pdf['error'] ?? null) !== UPLOAD_ERR_OK || (new finfo(FILEINFO_MIME_TYPE))->file($pdf['tmp_name']) !== 'application/pdf') {
-        $error = 'Choose a valid PDF within the server upload limit.';
+    requireClass($db, $classId);
+    if ($title === '' || mb_strlen($title) > 255) {
+        $error = 'Enter a title of up to 255 characters.';
+    } elseif (($pdf['error'] ?? null) !== UPLOAD_ERR_OK || $pdf['size'] > 8 * 1024 * 1024 || !is_uploaded_file($pdf['tmp_name'])
+        || (new finfo(FILEINFO_MIME_TYPE))->file($pdf['tmp_name']) !== 'application/pdf') {
+        $error = 'Choose a valid PDF up to 8 MB.';
     } else {
-        $path = 'uploads/' . bin2hex(random_bytes(16)) . '.pdf';
-        if (!move_uploaded_file($pdf['tmp_name'], __DIR__ . '/' . $path)) {
-            $error = 'The PDF could not be saved. Try uploading it again.';
-        } else {
-            try {
-                $courseModel->create($classId, $title, $path);
-            } catch (PDOException $exception) {
-                unlink(__DIR__ . '/' . $path);
-                throw $exception;
-            }
-            portalNotice('Course material uploaded.');
-            header('Location: courses.php', true, 303);
-            exit;
-        }
+        portalTransaction($db, function () use ($db, $courseModel, $classId, $title, $pdf) {
+            requireClass($db, $classId);
+            $courseModel->create($classId, $title, 'private');
+            $id = (int) $db->lastInsertId();
+            $name = mb_substr(basename(str_replace('\\', '/', $pdf['name'])), 0, 255);
+            $db->prepare('INSERT INTO course_files (course_id, file_name, contents) VALUES (?, ?, ?)')
+                ->execute([$id, $name ?: 'course.pdf', file_get_contents($pdf['tmp_name'])]);
+        });
+        portalNotice('Course material uploaded.');
+        redirectTo('courses.php');
     }
 }
 
-$classes = $classModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
-$courses = $courseModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
+$classes = staffClasses($db);
+$courses = $courseModel->getAll(classScope('courses.class_id'))->fetchAll(PDO::FETCH_ASSOC);
 require 'includes/layout.php';
 ?>
 <header class="page-header"><h1>Manage Course Materials</h1></header>
@@ -70,7 +70,7 @@ require 'includes/layout.php';
                     <select class="form-select" name="class_id" id="course-class" required>
                         <option value="">Select a class</option>
                         <?php foreach ($classes as $class): ?>
-                            <option value="<?= (int) $class['id'] ?>"<?= $classId === (int) $class['id'] ? ' selected' : '' ?>><?= h($class['name']) ?></option>
+                            <option value="<?= (int) $class['id'] ?>"<?= $classId === (int) $class['id'] ? ' selected' : '' ?>><?= h($class['name'] . ' · ' . $class['term_name']) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -103,7 +103,7 @@ require 'includes/layout.php';
                             <td><?= h($course['class_name'] ?? 'Class unavailable') ?></td>
                             <td>
                                 <div class="row-actions">
-                                    <a href="<?= h(courseFileUrl($course['file_path'])) ?>" class="btn btn-sm btn-secondary">View PDF</a>
+                                    <a href="<?= h(courseFileUrl($course['id'])) ?>" class="btn btn-sm btn-secondary">Download PDF</a>
                                     <form method="post" onsubmit="return confirm('Remove this course material?');">
                                         <input type="hidden" name="csrf_token" value="<?= h(csrfToken()) ?>">
                                         <button class="btn btn-sm btn-danger" type="submit" name="delete_id" value="<?= (int) $course['id'] ?>">Remove</button>

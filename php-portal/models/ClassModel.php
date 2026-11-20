@@ -20,13 +20,14 @@ class ClassModel
     }
 
     // Create class
-    public function create($name, $room)
+    public function create($name, $room, int $termId)
     {
-        $sql = "INSERT INTO " . $this->table . " (name, room)
-                VALUES (:name, :room)";
+        $sql = "INSERT INTO " . $this->table . " (name, room, term_id)
+                VALUES (:name, :room, :term_id)";
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(":name", $name);
         $stmt->bindParam(":room", $room);
+        $stmt->bindValue(":term_id", $termId, PDO::PARAM_INT);
         return $stmt->execute();
     }
     public function exists(int $id): bool
@@ -42,6 +43,7 @@ class ClassModel
             'DELETE FROM classes WHERE id = :id
              AND NOT EXISTS (SELECT 1 FROM students WHERE students.class_id = classes.id)
              AND NOT EXISTS (SELECT 1 FROM exams WHERE exams.class_id = classes.id)
+             AND NOT EXISTS (SELECT 1 FROM grades WHERE grades.class_id = classes.id)
              AND NOT EXISTS (SELECT 1 FROM courses WHERE courses.class_id = classes.id)'
         );
         try {
