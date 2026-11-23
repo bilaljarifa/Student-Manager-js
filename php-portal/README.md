@@ -1,6 +1,24 @@
 # School Portal
 
-School Portal is a PHP and MySQL app for managing academic terms, accounts, classes, attendance, grades, exams, course materials, timetables, announcements, and reports.
+School Portal is a PHP and MySQL app for running a school term. Teachers work with their assigned classes, administrators review and publish gradebooks, and students see their own report cards, attendance, and class updates.
+
+## Try the demo
+
+The demo creates a separate MySQL database named school_portal_demo with fictional students, assessments, attendance, timetable entries, and course worksheets. Start MySQL and set your connection credentials as described under [Local setup](#local-setup), then run this from the repository folder.
+
+~~~sh
+php scripts/demo.php serve
+~~~
+
+Open [the local demo](http://127.0.0.1:8001/). All three demo accounts use the password `SchoolPortalDemo!`.
+
+| Role | Email | What to try |
+| --- | --- | --- |
+| Teacher | `teacher@demo.schoolportal.test` | Open **Gradebook**, choose **Grade 9B · Term 2**, and enter marks for an assessment. |
+| Administrator | `admin@demo.schoolportal.test` | Open **Gradebook**, choose **Grade 9A · Term 2** under **Awaiting review**, and inspect the calculated grades. |
+| Student | `student@demo.schoolportal.test` | Open **Published grades** for the Grade 9A Term 1 report card, then explore **Attendance**, **Class updates**, and **Course materials**. |
+
+To load the demo data without starting the server, run `php scripts/demo.php seed`.
 
 ## Local setup
 

@@ -96,11 +96,11 @@ require 'includes/layout.php';
         <?php if ($courses): ?>
             <ul class="quick-links">
                 <?php foreach ($courses as $course): ?>
-                    <li><a href="<?= h(courseFileUrl($course['id'])) ?>"><?= h($course['title']) ?> <span>PDF</span></a></li>
+                    <li><a href="<?= h(courseFileUrl($course['id'])) ?>"><?= h($course['title']) ?> <span>Download PDF</span></a></li>
                 <?php endforeach; ?>
             </ul>
         <?php else: ?>
-            <p class="empty">No course materials are available.</p>
+            <p class="empty"><?= $hasClass ? 'Your teacher hasn’t uploaded any course materials for this class yet.' : 'Course materials appear here once you’re assigned to a class.' ?></p>
         <?php endif; ?>
     </section>
 </div>

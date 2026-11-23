@@ -77,7 +77,8 @@ try {
         $db->exec("INSERT INTO portal_migrations (version) VALUES ('class-subjects-v1')");
         $db->commit();
     }
-    if (!$db->query("SELECT 1 FROM users WHERE role = 'admin' AND active = 1 LIMIT 1")->fetchColumn()) {
+    if (($argv[1] ?? '') !== '--schema-only'
+        && !$db->query("SELECT 1 FROM users WHERE role = 'admin' AND active = 1 LIMIT 1")->fetchColumn()) {
         $email = $argv[1] ?? 'admin@schoolportal.test';
         if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 100) {
             throw new RuntimeException('Enter a valid email as the first setup argument.');

@@ -223,24 +223,29 @@ class GradebookModel
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
         foreach ($groups as $group) {
             $first = $group[0];
-            $counts = ['graded' => 0, 'missing' => 0, 'excused' => 0];
-            $includedWeight = 0;
-            $earned = 0.0;
-            foreach ($group as $mark) {
-                $counts[$mark['status']]++;
-                if ($mark['status'] !== 'excused') {
-                    $weight = (int) round((float) $mark['weight'] * 100);
-                    $includedWeight += $weight;
-                    if ($mark['status'] === 'graded') {
-                        $earned += ((float) $mark['points'] / (float) $mark['max_points']) * $weight;
-                    }
-                }
-            }
-            $percentage = $includedWeight ? round(100 * $earned / $includedWeight, 2) : null;
-            $save->execute([$classId, $first['student_id'], $first['subject_id'], $first['subject'], $percentage, ...array_values($counts)]);
+            $result = self::summarizeMarks($group);
+            $save->execute([$classId, $first['student_id'], $first['subject_id'], $first['subject'], ...array_values($result)]);
         }
         $this->db->prepare("UPDATE gradebooks SET state = 'in_review', review_note = NULL, submitted_at = CURRENT_TIMESTAMP WHERE class_id = ?")->execute([$classId]);
         auditEvent($this->db, 'submitted', 'gradebook', $classId, $classId, ['subject_results' => count($groups)]);
+    }
+
+    public static function summarizeMarks(array $marks): array
+    {
+        $counts = ['graded_count' => 0, 'missing_count' => 0, 'excused_count' => 0];
+        $includedWeight = 0;
+        $earned = 0.0;
+        foreach ($marks as $mark) {
+            $counts[$mark['status'] . '_count']++;
+            if ($mark['status'] !== 'excused') {
+                $weight = (int) round((float) $mark['weight'] * 100);
+                $includedWeight += $weight;
+                if ($mark['status'] === 'graded') {
+                    $earned += ((float) $mark['points'] / (float) $mark['max_points']) * $weight;
+                }
+            }
+        }
+        return ['percentage' => $includedWeight ? round(100 * $earned / $includedWeight, 2) : null] + $counts;
     }
 
     private function review(int $classId, array $book, string $action, string $note): void
