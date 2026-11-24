@@ -37,7 +37,7 @@ unset($_SESSION['portal_notice']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= h($pageTitle) ?> | School Portal</title>
-    <link rel="stylesheet" href="assets/portal.css?v=6">
+    <link rel="stylesheet" href="assets/portal.css?v=7">
 </head>
 <body class="portal">
     <a class="skip-link" href="#main-content">Skip to content</a>
